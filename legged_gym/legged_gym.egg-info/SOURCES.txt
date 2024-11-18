@@ -12,5 +12,6 @@ legged_gym/utils/__init__.py
 legged_gym/utils/helpers.py
 legged_gym/utils/logger.py
 legged_gym/utils/math.py
+legged_gym/utils/myterrian.py
 legged_gym/utils/task_registry.py
 legged_gym/utils/terrain.py

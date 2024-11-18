@@ -184,9 +184,9 @@ class Go1RoughCfgPPO( LeggedRobotCfgPPO ):
         # checkpoint = -1 # -1 = last saved model
         # resume_path = LEGGED_GYM_ROOT_DIR + '/logs/rough_go1/15_add_lin_vel_not_bad/model_8000.pt' # updated from load_run and chkpt
         
-        load_run =  LEGGED_GYM_ROOT_DIR + '/logs/rough_go1/Nov11_22-37-49_'# -1 = last run
+        load_run =  LEGGED_GYM_ROOT_DIR + '/logs/rough_go1/20_knee_touch_ground'# -1 = last run
         checkpoint = -1 # -1 = last saved model
-        resume_path = LEGGED_GYM_ROOT_DIR + '/logs/rough_go1/Nov11_22-37-49_/model_6800.pt' # updated from load_run and chkpt
+        resume_path = LEGGED_GYM_ROOT_DIR + 'logs/rough_go1/20_knee_touch_ground/model_9600.pt' # updated from load_run and chkpt
         
         save_interval = 200 # check for potential saves every this many iterations
         max_iterations = 10000
