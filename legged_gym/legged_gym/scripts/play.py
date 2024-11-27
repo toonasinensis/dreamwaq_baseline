@@ -42,9 +42,9 @@ import torch
 def play(args, x_vel=1.0, y_vel=0.0, yaw_vel=0.0):
     env_cfg, train_cfg = task_registry.get_cfgs(name=args.task)
     # override some parameters for testing
-    env_cfg.env.num_envs = min(env_cfg.env.num_envs, 1)
-    env_cfg.terrain.num_rows = 3
-    env_cfg.terrain.num_cols = 3
+    env_cfg.env.num_envs = min(env_cfg.env.num_envs, 50)
+    env_cfg.terrain.num_rows = 10
+    env_cfg.terrain.num_cols = 10
     env_cfg.terrain.curriculum = True
     env_cfg.terrain.max_init_terrain_level = 9
     env_cfg.noise.add_noise = False
@@ -61,10 +61,10 @@ def play(args, x_vel=1.0, y_vel=0.0, yaw_vel=0.0):
     
     env, _ = task_registry.make_env(name=args.task, args=args, env_cfg=env_cfg)
 
-    env.focus = True
-    # env.commands[:, 0] = x_vel
-    # env.commands[:, 1] = y_vel
-    # env.commands[:, 2] = yaw_vel
+    env.focus = False
+    env.commands[:, 0] = x_vel
+    env.commands[:, 1] = y_vel
+    env.commands[:, 2] = yaw_vel
 
     obs = env.get_observations()
     # load policy
