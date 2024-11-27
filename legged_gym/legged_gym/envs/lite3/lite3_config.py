@@ -155,5 +155,5 @@ class Lite3RoughCfgPPO( LeggedRobotCfgPPO ):
         # checkpoint = -1 # -1 = last saved model
         # resume_path = LEGGED_GYM_ROOT_DIR + 'logs/rough_go1/20_knee_touch_ground/model_9600.pt' # updated from load_run and chkpt
         
-        save_interval = 20 # check for potential saves every this many iterations
+        save_interval = 100 # check for potential saves every this many iterations
         max_iterations = 20000

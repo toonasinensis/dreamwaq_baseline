@@ -33,7 +33,7 @@ from legged_gym import LEGGED_GYM_ROOT_DIR
 
 class Go1RoughCfg( LeggedRobotCfg ):
     class env(LeggedRobotCfg.env):
-        num_envs = 3800
+        num_envs = 4096
     class terrain( LeggedRobotCfg.terrain ):
         mesh_type = 'trimesh' # "heightfield" # none, plane, heightfield or trimesh
 
@@ -181,14 +181,14 @@ class Go1RoughCfgPPO( LeggedRobotCfgPPO ):
         run_name = ''
         experiment_name = 'rough_go1'
 
-        resume = True
-        # load_run =  LEGGED_GYM_ROOT_DIR + '/logs/rough_go1/15_add_lin_vel_not_bad'# -1 = last run
+        # resume = True
+        # # load_run =  LEGGED_GYM_ROOT_DIR + '/logs/rough_go1/15_add_lin_vel_not_bad'# -1 = last run
+        # # checkpoint = -1 # -1 = last saved model
+        # # resume_path = LEGGED_GYM_ROOT_DIR + '/logs/rough_go1/15_add_lin_vel_not_bad/model_8000.pt' # updated from load_run and chkpt
+        
+        # load_run =  LEGGED_GYM_ROOT_DIR + '/logs/rough_go1/20_knee_touch_ground'# -1 = last run
         # checkpoint = -1 # -1 = last saved model
-        # resume_path = LEGGED_GYM_ROOT_DIR + '/logs/rough_go1/15_add_lin_vel_not_bad/model_8000.pt' # updated from load_run and chkpt
+        # resume_path = LEGGED_GYM_ROOT_DIR + 'logs/rough_go1/20_knee_touch_ground/model_9600.pt' # updated from load_run and chkpt
         
-        load_run =  LEGGED_GYM_ROOT_DIR + '/logs/rough_go1/20_knee_touch_ground'# -1 = last run
-        checkpoint = -1 # -1 = last saved model
-        resume_path = LEGGED_GYM_ROOT_DIR + 'logs/rough_go1/20_knee_touch_ground/model_9600.pt' # updated from load_run and chkpt
-        
-        save_interval = 200 # check for potential saves every this many iterations
-        max_iterations = 10000
+        # save_interval = 200 # check for potential saves every this many iterations
+        # max_iterations = 10000
