@@ -32,6 +32,8 @@ from legged_gym.envs.base.legged_robot_config import LeggedRobotCfg, LeggedRobot
 from legged_gym import LEGGED_GYM_ROOT_DIR
 
 class Go1RoughCfg( LeggedRobotCfg ):
+    class env(LeggedRobotCfg.env):
+        num_envs = 3800
     class terrain( LeggedRobotCfg.terrain ):
         mesh_type = 'trimesh' # "heightfield" # none, plane, heightfield or trimesh
 
