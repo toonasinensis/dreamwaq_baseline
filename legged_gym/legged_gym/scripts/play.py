@@ -71,7 +71,9 @@ def play(args, x_vel=1.0, y_vel=0.0, yaw_vel=0.0):
     train_cfg.runner.resume = True
     ppo_runner, train_cfg = task_registry.make_alg_runner(env=env, name=args.task, args=args, train_cfg=train_cfg)
     policy = ppo_runner.get_inference_policy(device=env.device)
-
+    policy_exp = torch.jit.load("../../logs/rough_go1/exported/policies/policy.pt")
+    policy_exp.eval()
+    policy_exp.to(device=env.device)
 
     # export policy as a jit module (used to run it from C++)
     if EXPORT_POLICY:
@@ -91,7 +93,7 @@ def play(args, x_vel=1.0, y_vel=0.0, yaw_vel=0.0):
 
     for i in range(10*int(env.max_episode_length)):
           
-        actions = policy(obs.detach())
+        actions = policy_exp(obs.detach())
         # env.commands[:, 0] = x_vel
         # env.commands[:, 1] = y_vel
         # env.commands[:, 2] = yaw_vel
