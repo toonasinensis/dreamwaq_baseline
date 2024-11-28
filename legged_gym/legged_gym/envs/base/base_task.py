@@ -168,9 +168,9 @@ class BaseTask():
                     elif evt.action == 'e' and evt.value > 0:
                         self.commands[:, 2] -= 0.1
                     if evt.value > 0:
-                        print("Set command as [x,y,yaw]: [{}, {}, {}]".format(round(self.commands[:, 0].item(), 2) , 
-                                                                    round(self.commands[:, 1].item(), 2),
-                                                                    round(self.commands[:, 2].item(), 2)))
+                        print("Set command as [x,y,yaw]: [{}, {}, {}]".format(round(self.commands[0, 0].item(), 2) , 
+                                                                    round(self.commands[0, 1].item(), 2),
+                                                                    round(self.commands[0, 2].item(), 2)))
 
             # fetch results
             if self.device != 'cpu':
