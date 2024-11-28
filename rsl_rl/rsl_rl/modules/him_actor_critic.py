@@ -78,6 +78,7 @@ class HIMActorCritic(nn.Module):
                         num_one_step_obs,
                         num_actions,
                         actor_hidden_dims=[512, 256, 128],
+                        height_hidden_dims=[256, 256, 128],
                         critic_hidden_dims=[512, 256, 128],
                         activation='elu',
                         init_noise_std=1.0,
@@ -91,9 +92,12 @@ class HIMActorCritic(nn.Module):
         self.history_size = int(num_actor_obs/num_one_step_obs)
         self.num_actor_obs = num_actor_obs
         self.num_actions = num_actions
+        self.num_latent_height = 32
+
         self.num_one_step_obs = num_one_step_obs
 
         mlp_input_dim_a = num_one_step_obs + 3 + 16 +32# 45 + 3 + 32 = 80#32 is the height 
+        mlp_input_dim_h = 187
         mlp_input_dim_c = num_critic_obs # + 32 TODO:1025
         self.mlp_input_dim_c = mlp_input_dim_c
         # Estimator
@@ -112,6 +116,19 @@ class HIMActorCritic(nn.Module):
                 actor_layers.append(activation)
         self.actor = nn.Sequential(*actor_layers)
 
+        height_layers = []
+        height_layers.append(nn.Linear(mlp_input_dim_h, height_hidden_dims[0]))
+        height_layers.append(activation)
+        for l in range(len(height_hidden_dims)):
+            if l == len(height_hidden_dims) - 1:
+                height_layers.append(nn.Linear(height_hidden_dims[l], self.num_latent_height))
+                # actor_layers.append(nn.Tanh())
+            else:
+                height_layers.append(nn.Linear(height_hidden_dims[l], height_hidden_dims[l + 1]))
+                height_layers.append(activation)
+        self.height_mlp = nn.Sequential(*height_layers)
+
+
         # Value function
         critic_layers = []
         critic_layers.append(nn.Linear(mlp_input_dim_c, critic_hidden_dims[0]))
@@ -127,6 +144,8 @@ class HIMActorCritic(nn.Module):
         print(f"Actor MLP: {self.actor}")
         print(f"Critic MLP: {self.critic}")
         print(f'Estimator: {self.estimator.encoder}')
+        print(f'height: {self.height_mlp}')
+
 
         # Action noise
         self.std = nn.Parameter(init_noise_std * torch.ones(num_actions))
@@ -165,8 +184,11 @@ class HIMActorCritic(nn.Module):
 
     def update_distribution(self, obs_history):
         with torch.no_grad():
-            vel, latent = self.estimator(obs_history)
-        actor_input = torch.cat((obs_history[:,:self.num_one_step_obs], vel, latent), dim=-1)
+            vel, latent = self.estimator(obs_history[:,:self.num_one_step_obs*6])
+        height = obs_history[:,self.num_one_step_obs*6:self.num_one_step_obs*6+187]
+        height_latent =  self.height_mlp(height)
+        actor_input = torch.cat((obs_history[:,:self.num_one_step_obs], vel, latent,\
+                                height_latent), dim=-1)
         mean = self.actor(actor_input)
         self.distribution = Normal(mean, mean*0. + self.std)
 
@@ -179,7 +201,10 @@ class HIMActorCritic(nn.Module):
 
     def act_inference(self, obs_history, observations=None):
         vel, latent = self.estimator(obs_history)
-        actions_mean = self.actor(torch.cat((obs_history[:,:self.num_one_step_obs], vel, latent), dim=-1))
+        height = obs_history[:,self.num_one_step_obs*6:self.num_one_step_obs*6+187]
+        # print(height[0,:])
+        height_latent =  self.height_mlp(height)
+        actions_mean = self.actor(torch.cat((obs_history[:,:self.num_one_step_obs], vel, latent,height_latent), dim=-1))
         return actions_mean
 
     def evaluate(self, critic_observations, **kwargs):

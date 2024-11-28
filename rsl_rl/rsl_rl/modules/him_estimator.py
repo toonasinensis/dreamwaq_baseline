@@ -14,7 +14,7 @@ class HIMEstimator(nn.Module):
                  num_one_step_obs,
                  encoder_hidden_dims=[256, 128],
                  decoder_hidden_dims = [128, 256],
-                 latent_dim = 16+32,#32 is the height
+                 latent_dim = 16,#32 is the height
                  activation='elu',
                  learning_rate=1e-3,
                  max_grad_norm=10.0,
@@ -50,7 +50,7 @@ class HIMEstimator(nn.Module):
 
         #HISTORY with height Encoder 
         encoder_layers = []
-        encoder_input_dim = self.temporal_steps * self.num_one_step_obs+187
+        encoder_input_dim = self.temporal_steps * self.num_one_step_obs
         encoder_layers.append(nn.Sequential(nn.Linear(encoder_input_dim, encoder_hidden_dims[0]),
                                             nn.BatchNorm1d(encoder_hidden_dims[0]),
                                             nn.ELU()))
@@ -116,15 +116,14 @@ class HIMEstimator(nn.Module):
                 
         vel = next_critic_obs[:, self.num_one_step_obs:self.num_one_step_obs+3].detach()
         next_obs = next_critic_obs.detach()[:, 3:self.num_one_step_obs+3]
-        privi_height = next_critic_obs.detach()[:,self.num_one_step_obs+3+3:self.num_one_step_obs+3+3+187]
+        # privi_height = next_critic_obs.detach()[:,self.num_one_step_obs+3+3:self.num_one_step_obs+3+3+187]
 
-        vel_pred, z, latent_mu, latent_logvar = self.encode(obs_history)
+        vel_pred, z, latent_mu, latent_logvar = self.encode(obs_history[:,:self.num_one_step_obs*6])
         # z_t = self.target(next_obs)
         # pred_vel, z_s = z_s[..., :3], z_s[..., 3:]
         estimation_loss = F.mse_loss(vel_pred, vel)
         obs_next_pred =self.decode(z, vel_pred)
-        reconstruct_loss = F.mse_loss(obs_next_pred[:,:self.num_one_step_obs], next_obs)\
-        + F.mse_loss(obs_next_pred[:,self.num_one_step_obs:self.num_one_step_obs+187],privi_height)
+        reconstruct_loss = F.mse_loss(obs_next_pred[:,:self.num_one_step_obs], next_obs)
 
         kld_loss = -0.5 * torch.sum(1 + latent_logvar - latent_mu ** 2 - latent_logvar.exp(), dim = 1)
         kld_loss_mean = kld_loss.mean()
