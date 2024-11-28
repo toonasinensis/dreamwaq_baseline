@@ -266,50 +266,12 @@ class LeggedRobot(BaseTask):
             heights = torch.clip(self.root_states[:, 2].unsqueeze(1) - 0.5 - self.measured_heights, -1, 1.) * self.obs_scales.height_measurements 
             heights += (2 * torch.rand_like(heights) - 1) * self.noise_scale_vec[(9 + 3 * self.num_actions):(9 + 3 * self.num_actions+self.num_height_points)]
             current_obs = torch.cat((current_obs, heights), dim=-1)
+        self.obs_buf_wo_height =  torch.cat((current_obs[:, :self.num_one_step_obs], self.obs_buf[:, :-self.num_one_step_obs]), dim=-1)
 
-        self.obs_buf = torch.cat((current_obs[:, :self.num_one_step_obs], self.obs_buf[:, :-self.num_one_step_obs]), dim=-1)
+        self.obs_buf = torch.cat((self.obs_buf_wo_height, heights), dim=-1)
         self.privileged_obs_buf = torch.cat((current_obs[:, :self.num_one_step_privileged_obs], self.privileged_obs_buf[:, :-self.num_one_step_privileged_obs]), dim=-1)
 
-    # new shit
-    # def compute_observations(self):
-    #     """ Computes observations
-    #     """
-    #     current_obs = torch.cat((   self.commands[:, :3] * self.commands_scale,
-    #                                 self.base_ang_vel  * self.obs_scales.ang_vel,
-    #                                 self.base_lin_vel * self.obs_scales.lin_vel,# TODO
-    #                                 self.projected_gravity,
-    #                                 (self.dof_pos - self.default_dof_pos) * self.obs_scales.dof_pos,
-    #                                 self.dof_vel * self.obs_scales.dof_vel,
-    #                                 self.actions
-    #                                 ),dim=-1)
-        
-        
-    #     noise_scales = self.cfg.noise.noise_scales
-    #     noise_level = self.cfg.noise.noise_level
-    #     noise_vec = torch.cat((torch.zeros(3),
-    #                            torch.ones(3) * noise_scales.ang_vel * noise_level,
-    #                            torch.ones(3) * noise_scales.lin_vel * noise_level,
-    #                            torch.ones(3) * noise_scales.gravity * noise_level,
-    #                            torch.ones(
-    #                                12) * noise_scales.dof_pos * noise_level * self.obs_scales.dof_pos,
-    #                            torch.ones(
-    #                                12) * noise_scales.dof_vel * noise_level * self.obs_scales.dof_vel,
-    #                            torch.zeros(self.num_actions),
-    #                            ), dim=0)
-        
-    #     if self.cfg.noise.add_noise:
-    #         current_obs += (2 * torch.rand_like(current_obs) - 1) * noise_vec.to(self.device)
-
-    #     current_obs = torch.cat((current_obs, self.base_lin_vel * self.obs_scales.lin_vel, self.disturbance[:, 0, :]), dim=-1)
-    #     # add perceptive inputs if not blind
-    #     if self.cfg.terrain.measure_heights:
-    #         heights = torch.clip(self.root_states[:, 2].unsqueeze(1) - 0.5 - self.measured_heights, -1, 1.) * self.obs_scales.height_measurements 
-    #         heights += (2 * torch.rand_like(heights) - 1) * self.noise_scale_vec[(9 + 3 * self.num_actions):(9 + 3 * self.num_actions+self.num_height_points)]
-    #         current_obs = torch.cat((current_obs, heights), dim=-1)
-
-    #     self.obs_buf = torch.cat((current_obs[:, :self.num_one_step_obs], self.obs_buf[:, :-self.num_one_step_obs]), dim=-1)
-    #     self.privileged_obs_buf = torch.cat((current_obs[:, :self.num_one_step_privileged_obs], self.privileged_obs_buf[:, :-self.num_one_step_privileged_obs]), dim=-1)
-
+    
     def get_current_obs(self):
         current_obs = torch.cat((   self.commands[:, :3] * self.commands_scale,
                                     self.base_ang_vel  * self.obs_scales.ang_vel,
@@ -331,46 +293,7 @@ class LeggedRobot(BaseTask):
 
         return current_obs
 
-    # new shit
-    # def compute_termination_observations(self, env_ids):
-    #     """ Computes observations
-    #     """
-    #     current_obs = torch.cat((    self.commands[:, :3] * self.commands_scale,
-    #                         self.base_ang_vel  * self.obs_scales.ang_vel,
-    #                         self.base_lin_vel * self.obs_scales.lin_vel,# TODO
-    #                         self.projected_gravity,
-    #                         (self.dof_pos - self.default_dof_pos) * self.obs_scales.dof_pos,
-    #                         self.dof_vel * self.obs_scales.dof_vel,
-    #                         self.actions
-    #                         ),dim=-1)
-        
-        
-    #     noise_scales = self.cfg.noise.noise_scales
-    #     noise_level = self.cfg.noise.noise_level
-    #     noise_vec = torch.cat((torch.zeros(3),
-    #                            torch.ones(3) * noise_scales.ang_vel * noise_level,
-    #                            torch.ones(3) * noise_scales.lin_vel * noise_level,
-    #                            torch.ones(3) * noise_scales.gravity * noise_level,
-    #                            torch.ones(
-    #                                12) * noise_scales.dof_pos * noise_level * self.obs_scales.dof_pos,
-    #                            torch.ones(
-    #                                12) * noise_scales.dof_vel * noise_level * self.obs_scales.dof_vel,
-    #                            torch.zeros(self.num_actions),
-    #                            ), dim=0)
-        
-    #     if self.cfg.noise.add_noise:
-    #         current_obs += (2 * torch.rand_like(current_obs) - 1) * noise_vec.to(self.device)
-
-    #     current_obs = torch.cat((current_obs, self.base_lin_vel * self.obs_scales.lin_vel, self.disturbance[:, 0, :]), dim=-1)
-        
-    #     # add perceptive inputs if not blind
-    #     if self.cfg.terrain.measure_heights:
-    #         heights = torch.clip(self.root_states[:, 2].unsqueeze(1) - 0.5 - self.measured_heights, -1, 1.) * self.obs_scales.height_measurements 
-    #         heights += (2 * torch.rand_like(heights) - 1) * self.noise_scale_vec[(9 + 3 * self.num_actions):(9 + 3 * self.num_actions+self.num_height_points)]
-    #         current_obs = torch.cat((current_obs, heights), dim=-1)
-
-    #     return torch.cat((current_obs[:, :self.num_one_step_privileged_obs], self.privileged_obs_buf[:, :-self.num_one_step_privileged_obs]), dim=-1)[env_ids]
-
+    
     # old shit
     def compute_termination_observations(self, env_ids):
         """ Computes observations

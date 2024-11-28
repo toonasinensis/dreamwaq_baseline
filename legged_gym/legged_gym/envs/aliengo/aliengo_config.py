@@ -34,7 +34,8 @@ class AlienGoRoughCfg( LeggedRobotCfg ):
     class env( LeggedRobotCfg.env ):
         num_envs = 4096
         num_one_step_observations = 45
-        num_observations = num_one_step_observations * 6
+        num_observations = num_one_step_observations * 6 + 187 #TODO:  
+        # num_observations_with_height = num_observations + 187
         num_one_step_privileged_obs = 45 + 3 + 3 + 187 # additional: base_lin_vel, external_forces, scan_dots
         num_privileged_obs = num_one_step_privileged_obs * 1 # if not None a priviledge_obs_buf will be returned by step() (critic obs for assymetric training). None is returned otherwise 
         num_actions = 12

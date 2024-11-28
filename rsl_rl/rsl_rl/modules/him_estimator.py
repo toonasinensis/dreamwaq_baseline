@@ -48,7 +48,7 @@ class HIMEstimator(nn.Module):
         self.decoder = nn.Sequential(*decoder_layers)        
         print("decoder",self.decoder)
 
-        #HISTORY Encoder 
+        #HISTORY with height Encoder 
         encoder_layers = []
         encoder_input_dim = self.temporal_steps * self.num_one_step_obs
         encoder_layers.append(nn.Sequential(nn.Linear(encoder_input_dim, encoder_hidden_dims[0]),
@@ -61,6 +61,10 @@ class HIMEstimator(nn.Module):
                             nn.BatchNorm1d(encoder_hidden_dims[l+1]),
                             nn.ELU()))
         self.encoder = nn.Sequential(*encoder_layers)
+
+
+
+        
 
         self.fc_mu = nn.Linear(encoder_hidden_dims[-1], latent_dim)
         self.fc_var = nn.Linear(encoder_hidden_dims[-1], latent_dim)

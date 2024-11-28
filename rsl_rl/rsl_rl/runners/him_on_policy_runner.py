@@ -58,10 +58,10 @@ class HIMOnPolicyRunner:
             num_critic_obs = self.env.num_privileged_obs 
         else:
             num_critic_obs = self.env.num_obs
-        self.num_actor_obs = self.env.num_obs
+        self.num_actor_obs = self.env.num_obs_wo_height
         self.num_critic_obs = num_critic_obs
         actor_critic_class = eval(self.cfg["policy_class_name"]) # HIMActorCritic
-        actor_critic: HIMActorCritic = actor_critic_class( self.env.num_obs,
+        actor_critic: HIMActorCritic = actor_critic_class( self.env.num_obs_wo_height,
                                                         num_critic_obs,
                                                         self.env.num_one_step_obs,
                                                         self.env.num_actions,

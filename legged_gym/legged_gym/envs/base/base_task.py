@@ -60,6 +60,7 @@ class BaseTask():
 
         self.num_envs = cfg.env.num_envs
         self.num_obs = cfg.env.num_observations
+        self.num_obs_wo_height = cfg.env.num_observations_wo_height
         self.num_privileged_obs = cfg.env.num_privileged_obs
         self.num_actions = cfg.env.num_actions
 
@@ -69,6 +70,8 @@ class BaseTask():
 
         # allocate buffers
         self.obs_buf = torch.zeros(self.num_envs, self.num_obs, device=self.device, dtype=torch.float)
+        self.obs_buf_wo_height = torch.zeros(self.num_envs, self.num_obs_wo_height, device=self.device, dtype=torch.float)
+
         self.rew_buf = torch.zeros(self.num_envs, device=self.device, dtype=torch.float)
         self.reset_buf = torch.ones(self.num_envs, device=self.device, dtype=torch.long)
         self.episode_length_buf = torch.zeros(self.num_envs, device=self.device, dtype=torch.long)
