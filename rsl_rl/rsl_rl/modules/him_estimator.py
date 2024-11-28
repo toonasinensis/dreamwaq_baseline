@@ -13,7 +13,6 @@ class HIMEstimator(nn.Module):
                  temporal_steps,
                  num_one_step_obs,
                  encoder_hidden_dims=[256, 128],
-                #  his_hidden_dims =[512,256],
                  decoder_hidden_dims = [128, 256],
                  latent_dim = 16,
                  activation='elu',

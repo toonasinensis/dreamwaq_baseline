@@ -42,7 +42,7 @@ import torch
 def play(args, x_vel=1.0, y_vel=0.0, yaw_vel=0.0):
     env_cfg, train_cfg = task_registry.get_cfgs(name=args.task)
     # override some parameters for testing
-    env_cfg.env.num_envs = min(env_cfg.env.num_envs, 50)
+    env_cfg.env.num_envs = min(env_cfg.env.num_envs, 100)
     env_cfg.terrain.num_rows = 10
     env_cfg.terrain.num_cols = 10
     env_cfg.terrain.curriculum = True
@@ -88,13 +88,16 @@ def play(args, x_vel=1.0, y_vel=0.0, yaw_vel=0.0):
     camera_vel = np.array([1., 1., 0.])
     camera_direction = np.array(env_cfg.viewer.lookat) - np.array(env_cfg.viewer.pos)
     img_idx = 0
-
+    policy_exp = torch.jit.load("../../logs/rough_lite3/exported/policies/policy.pt")
+    policy_exp.eval()
+    policy_exp.to(device=env.device)
     for i in range(10*int(env.max_episode_length)):
           
-        actions = policy(obs.detach())
-        # env.commands[:, 0] = x_vel
-        # env.commands[:, 1] = y_vel
-        # env.commands[:, 2] = yaw_vel
+        actions = policy_exp(obs.detach())
+
+        env.commands[:, 0] = x_vel
+        env.commands[:, 1] = y_vel
+        env.commands[:, 2] = yaw_vel
         obs, _, rews, dones, infos, _, _ = env.step(actions.detach())
 
         if RECORD_FRAMES:
