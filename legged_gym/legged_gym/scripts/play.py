@@ -71,7 +71,7 @@ def play(args, x_vel=1.0, y_vel=0.0, yaw_vel=0.0):
     train_cfg.runner.resume = True
     ppo_runner, train_cfg = task_registry.make_alg_runner(env=env, name=args.task, args=args, train_cfg=train_cfg)
     policy = ppo_runner.get_inference_policy(device=env.device)
-    policy_exp = torch.jit.load("../../logs/rough_go1/exported/policies/policy.pt")
+    policy_exp = torch.jit.load("../../logs/rough_lite3/exported/policies/policy.pt")
     policy_exp.eval()
     policy_exp.to(device=env.device)
 
