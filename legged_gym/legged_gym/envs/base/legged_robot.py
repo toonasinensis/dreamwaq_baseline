@@ -266,9 +266,13 @@ class LeggedRobot(BaseTask):
             heights = torch.clip(self.root_states[:, 2].unsqueeze(1) - 0.5 - self.measured_heights, -1, 1.) * self.obs_scales.height_measurements 
             heights += (2 * torch.rand_like(heights) - 1) * self.noise_scale_vec[(9 + 3 * self.num_actions):(9 + 3 * self.num_actions+self.num_height_points)]
             current_obs = torch.cat((current_obs, heights), dim=-1)
-        self.obs_buf_wo_height =  torch.cat((current_obs[:, :self.num_one_step_obs], self.obs_buf[:, :-self.num_one_step_obs]), dim=-1)
+        self.obs_buf_wo_height =  torch.cat((current_obs[:, :self.num_one_step_obs], self.obs_buf_wo_height[:, :-self.num_one_step_obs]), dim=-1)
 
         self.obs_buf = torch.cat((self.obs_buf_wo_height, heights), dim=-1)
+        # print("self.obs_buf",self.obs_buf.size())
+        # print("self.obs_buf_wo_height",self.obs_buf_wo_height.size())
+        # print("self.heights",heights.size())
+
         self.privileged_obs_buf = torch.cat((current_obs[:, :self.num_one_step_privileged_obs], self.privileged_obs_buf[:, :-self.num_one_step_privileged_obs]), dim=-1)
 
     

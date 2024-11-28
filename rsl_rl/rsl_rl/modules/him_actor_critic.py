@@ -93,12 +93,12 @@ class HIMActorCritic(nn.Module):
         self.num_actions = num_actions
         self.num_one_step_obs = num_one_step_obs
 
-        mlp_input_dim_a = num_one_step_obs + 3 + 16 # 45 + 3 + 32 = 80 
+        mlp_input_dim_a = num_one_step_obs + 3 + 16 +32# 45 + 3 + 32 = 80#32 is the height 
         mlp_input_dim_c = num_critic_obs # + 32 TODO:1025
         self.mlp_input_dim_c = mlp_input_dim_c
         # Estimator
-        self.estimator = HIMEstimator(temporal_steps=self.history_size, num_one_step_obs=num_one_step_obs)
-        # self.estimator = HIMEstimator(temporal_steps=6, num_one_step_obs=num_one_step_obs)
+        # self.estimator = HIMEstimator(temporal_steps=self.history_size, num_one_step_obs=num_one_step_obs)
+        self.estimator = HIMEstimator(temporal_steps=6, num_one_step_obs=num_one_step_obs)
         # Policy
         actor_layers = []
         actor_layers.append(nn.Linear(mlp_input_dim_a, actor_hidden_dims[0]))

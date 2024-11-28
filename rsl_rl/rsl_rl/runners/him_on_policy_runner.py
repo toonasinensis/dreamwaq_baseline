@@ -111,6 +111,7 @@ class HIMOnPolicyRunner:
             # Rollout
             with torch.inference_mode():
                 for i in range(self.num_steps_per_env):
+                    # print("obs.size()",obs.size())
                     actions = self.alg.act(obs, critic_obs)
                     obs, privileged_obs, rewards, dones, infos, termination_ids, termination_privileged_obs = self.env.step(actions)
 
