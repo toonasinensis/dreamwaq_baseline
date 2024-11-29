@@ -137,8 +137,8 @@ class HIMEstimator(nn.Module):
         # pred_vel, z_s = z_s[..., :3], z_s[..., 3:]
         estimation_loss = F.mse_loss(vel_pred, vel)
         obs_next_pred ,height_pred=self.decode(z, vel_pred)
-        reconstruct_loss = F.mse_loss(obs_next_pred[:,:self.num_one_step_obs], next_obs)+\
-        F.mse_loss(height_pred,privi_height)
+        reconstruct_loss = F.mse_loss(obs_next_pred[:,:self.num_one_step_obs], next_obs)
+        # +F.mse_loss(height_pred,privi_height)
        
 
         kld_loss = -0.5 * torch.sum(1 + latent_logvar - latent_mu ** 2 - latent_logvar.exp(), dim = 1)
