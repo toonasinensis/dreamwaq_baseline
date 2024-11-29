@@ -49,7 +49,27 @@ from legged_gym.utils.helpers import class_to_dict
 from .legged_robot_config import LeggedRobotCfg
 
 import random
-
+def euler_from_quaternion(quat_angle):
+        """
+        Convert a quaternion into euler angles (roll, pitch, yaw)
+        roll is rotation around x in radians (counterclockwise)
+        pitch is rotation around y in radians (counterclockwise)
+        yaw is rotation around z in radians (counterclockwise)
+        """
+        x = quat_angle[:,0]; y = quat_angle[:,1]; z = quat_angle[:,2]; w = quat_angle[:,3]
+        t0 = +2.0 * (w * x + y * z)
+        t1 = +1.0 - 2.0 * (x * x + y * y)
+        roll_x = torch.atan2(t0, t1)
+     
+        t2 = +2.0 * (w * y - z * x)
+        t2 = torch.clip(t2, -1, 1)
+        pitch_y = torch.asin(t2)
+     
+        t3 = +2.0 * (w * z + x * y)
+        t4 = +1.0 - 2.0 * (y * y + z * z)
+        yaw_z = torch.atan2(t3, t4)
+     
+        return roll_x, pitch_y, yaw_z # in radians
 class LeggedRobot(BaseTask):
     def __init__(self, cfg: LeggedRobotCfg, sim_params, physics_engine, sim_device, headless):
         """ Parses the provided config file,
@@ -131,6 +151,8 @@ class LeggedRobot(BaseTask):
         self.base_ang_vel[:] = quat_rotate_inverse(self.base_quat, self.root_states[:, 10:13])
         self.projected_gravity[:] = quat_rotate_inverse(self.base_quat, self.gravity_vec)
         
+        self.roll, self.pitch, self.yaw = euler_from_quaternion(self.base_quat)
+
         self.feet_pos = self.rigid_body_states.view(self.num_envs, self.num_bodies, 13)[:, self.feet_indices, 0:3]
         self.feet_vel = self.rigid_body_states.view(self.num_envs, self.num_bodies, 13)[:, self.feet_indices, 7:10]
 
@@ -456,7 +478,7 @@ class LeggedRobot(BaseTask):
         if self.cfg.commands.heading_command:
             forward = quat_apply(self.base_quat, self.forward_vec)
             heading = torch.atan2(forward[:, 1], forward[:, 0])
-            self.commands[:, 2] = torch.clip(0.5*wrap_to_pi(self.commands[:, 3] - heading), -2., 2.)
+            self.commands[:, 2] = torch.clip(0.8*wrap_to_pi(self.commands[:, 3] - heading), -2., 2.)
 
         if self.cfg.terrain.measure_heights:
             self.measured_heights = self._get_heights()
@@ -476,7 +498,7 @@ class LeggedRobot(BaseTask):
             self.commands[env_ids, 1] = 0.0
             self.commands[env_ids, 2] = 0.0
             return
-        self.commands[env_ids, 0] = torch_rand_float(-1.0, 1.0, (len(env_ids), 1), device=self.device).squeeze(1)
+        self.commands[env_ids, 0] = torch_rand_float(-0.50, 0.50, (len(env_ids), 1), device=self.device).squeeze(1)
         self.commands[env_ids, 1] = torch_rand_float(self.command_ranges["lin_vel_y"][0], self.command_ranges["lin_vel_y"][1], (len(env_ids), 1), device=self.device).squeeze(1)
         if self.cfg.commands.heading_command:
             self.commands[env_ids, 3] = torch_rand_float(self.command_ranges["heading"][0], self.command_ranges["heading"][1], (len(env_ids), 1), device=self.device).squeeze(1)
@@ -489,7 +511,7 @@ class LeggedRobot(BaseTask):
         self.commands[high_vel_env_ids, 0] = torch_rand_float(self.command_ranges["lin_vel_x"][0], self.command_ranges["lin_vel_x"][1], (len(high_vel_env_ids), 1), device=self.device).squeeze(1)
 
         # set y commands of high vel envs to zero
-        self.commands[high_vel_env_ids, 1:2] *= (torch.norm(self.commands[high_vel_env_ids, 0:1], dim=1) < 1.0).unsqueeze(1)
+        self.commands[high_vel_env_ids, 1:2] *= (torch.norm(self.commands[high_vel_env_ids, 0:1], dim=1) < 0.50).unsqueeze(1)
 
         # set small commands to zero
         self.commands[env_ids, :2] *= (torch.norm(self.commands[env_ids, :2], dim=1) > 0.2).unsqueeze(1)
@@ -610,8 +632,8 @@ class LeggedRobot(BaseTask):
         low_vel_env_ids = env_ids[low_vel_env_ids.nonzero(as_tuple=True)]
         high_vel_env_ids = env_ids[high_vel_env_ids.nonzero(as_tuple=True)]
         # If the tracking reward is above 80% of the maximum, increase the range of commands # TODO
-        if (torch.mean(self.episode_sums["tracking_lin_vel"][low_vel_env_ids]) / self.max_episode_length > 0.85 * self.reward_scales["tracking_lin_vel"]) \
-            and (torch.mean(self.episode_sums["tracking_lin_vel"][high_vel_env_ids]) / self.max_episode_length > 0.85 * self.reward_scales["tracking_lin_vel"]):
+        if (torch.mean(self.episode_sums["tracking_goal_vel"][low_vel_env_ids]) / self.max_episode_length > 0.85 * self.reward_scales["tracking_goal_vel"]) \
+            and (torch.mean(self.episode_sums["tracking_goal_vel"][high_vel_env_ids]) / self.max_episode_length > 0.85 * self.reward_scales["tracking_goal_vel"]):
             self.command_ranges["lin_vel_x"][0] = np.clip(self.command_ranges["lin_vel_x"][0] - 0.1, -self.cfg.commands.max_curriculum, 0.)
             self.command_ranges["lin_vel_x"][1] = np.clip(self.command_ranges["lin_vel_x"][1] + 0.1, 0., self.cfg.commands.max_curriculum) # 0.2
 
@@ -1287,3 +1309,20 @@ class LeggedRobot(BaseTask):
     def _reward_feet_contact_forces(self):
         # penalize high contact forces
         return torch.sum((torch.norm(self.contact_forces[:, self.feet_indices, :], dim=-1) -  self.cfg.rewards.max_contact_force).clip(min=0.), dim=1)
+
+
+    def _reward_tracking_goal_vel(self):
+        # self.commands[:, :2]
+        norm = torch.norm(self.commands[:, :2], dim=-1, keepdim=True)
+        target_vec_norm = self.commands[:, :2] / (norm + 1e-5)
+        cur_vel = self.root_states[:, 7:9]
+        rew = torch.minimum(torch.sum(target_vec_norm * cur_vel, dim=-1), self.commands[:, 0]) / (self.commands[:, 0] + 1e-5)
+        return rew
+
+    def _reward_tracking_yaw(self):
+        norm = torch.norm(self.commands[:, :2], dim=-1, keepdim=True)
+        target_vec_norm = self.commands[:, :2] / (norm + 1e-5)
+        self.target_yaw = torch.atan2(target_vec_norm[:, 1], target_vec_norm[:, 0])
+        rew = torch.exp(-torch.abs(self.target_yaw - self.yaw))
+        return rew
+    

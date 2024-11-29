@@ -85,15 +85,15 @@ class Lite3RoughCfg( LeggedRobotCfg ):
 
     class commands( LeggedRobotCfg.commands ):
             curriculum = True
-            max_curriculum = 1.0 # 2.0
+            max_curriculum = 1.5 # 2.0
             num_commands = 4 # default: lin_vel_x, lin_vel_y, ang_vel_yaw, heading (in heading mode ang_vel_yaw is recomputed from heading error)
             resampling_time = 10. # time before command are changed[s]
             heading_command = True # if true: compute ang vel command from heading error
             class ranges( LeggedRobotCfg.commands.ranges):
-                lin_vel_x = [-0.5, 0.5] # min max [m/s] TODO 1.0
-                lin_vel_y = [-0.5, 0.5]   # min max [m/s] TODO 1.0
-                ang_vel_yaw = [-1.0, 1.0]    # min max [rad/s] TODO 3.14
-                heading = [-3.14, 3.14]
+                lin_vel_x = [0., 0.5] # min max [m/s] TODO 1.0
+                lin_vel_y = [-0.1, 0.1]   # min max [m/s] TODO 1.0
+                ang_vel_yaw = [-0.0, 0.0]    # min max [rad/s] TODO 3.14
+                heading = [0, 0]
 
     class asset( LeggedRobotCfg.asset ):
         file = '{LEGGED_GYM_ROOT_DIR}/resources/robots/Lite3/urdf/Lite3.urdf'
@@ -118,8 +118,10 @@ class Lite3RoughCfg( LeggedRobotCfg ):
             foot_slide = -0.05
             
             joint_power = -2e-5
-            tracking_lin_vel = 1.0
-            tracking_ang_vel = 0.5
+            # tracking_lin_vel = 1.0
+            # tracking_ang_vel = 0.5
+            tracking_goal_vel = 1.5
+            tracking_yaw = 0.5
             lin_vel_z = -2.0
             ang_vel_xy = -0.05
             dof_acc = -2.5e-7
