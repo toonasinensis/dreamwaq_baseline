@@ -33,7 +33,7 @@ from legged_gym import LEGGED_GYM_ROOT_DIR
 
 class Lite3RoughCfg( LeggedRobotCfg ):
     class env(LeggedRobotCfg.env):
-        num_envs = 3500
+        num_envs = 100
     class terrain( LeggedRobotCfg.terrain ):
         mesh_type = 'trimesh' # "heightfield" # none, plane, heightfield or trimesh
 
@@ -98,7 +98,7 @@ class Lite3RoughCfg( LeggedRobotCfg ):
     class asset( LeggedRobotCfg.asset ):
         file = '{LEGGED_GYM_ROOT_DIR}/resources/robots/Lite3/urdf/Lite3.urdf'
         name = "lite3"
-        foot_name = "foot"
+        foot_name = "FOOT"
         penalize_contacts_on = ["THIGH", "SHANK", "TORSO"]
         terminate_after_contacts_on = ["TORSO"]
         privileged_contacts_on = ["TORSO", "THIGH", "SHANK"]

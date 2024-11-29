@@ -85,7 +85,7 @@ class HIMActorCritic(nn.Module):
         if kwargs:
             print("ActorCritic.__init__ got unexpected arguments, which will be ignored: " + str([key for key in kwargs.keys()]))
         super(HIMActorCritic, self).__init__()
-
+        self.ested_state_num = 3+1+4*3
         activation = get_activation(activation)
 
         self.history_size = int(num_actor_obs/num_one_step_obs)
@@ -93,7 +93,7 @@ class HIMActorCritic(nn.Module):
         self.num_actions = num_actions
         self.num_one_step_obs = num_one_step_obs
 
-        mlp_input_dim_a = num_one_step_obs + 3 + 16 # 45 + 3 + 32 = 80 
+        mlp_input_dim_a = num_one_step_obs + self.ested_state_num  + 16 # 45 + 3 + 32 = 80 
         mlp_input_dim_c = num_critic_obs # + 32 TODO:1025
         self.mlp_input_dim_c = mlp_input_dim_c
         # Estimator

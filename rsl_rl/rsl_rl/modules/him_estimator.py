@@ -32,10 +32,11 @@ class HIMEstimator(nn.Module):
         self.max_grad_norm = max_grad_norm
         
         # Encoder
+        self.ested_state_num = 3+1+4*3
 
         # Build Decoder  
         decoder_layers = []
-        decoder_input_dim = latent_dim + 3
+        decoder_input_dim = latent_dim + self.ested_state_num 
         decoder_layers.append(nn.Sequential(nn.Linear(decoder_input_dim, decoder_hidden_dims[0]),
                                             nn.BatchNorm1d(decoder_hidden_dims[0]),
                                             nn.ELU()))
@@ -65,7 +66,7 @@ class HIMEstimator(nn.Module):
 
         self.fc_mu = nn.Linear(encoder_hidden_dims[-1], latent_dim)
         self.fc_var = nn.Linear(encoder_hidden_dims[-1], latent_dim)
-        self.fc_vel = nn.Linear(encoder_hidden_dims[-1], 3)
+        self.fc_vel = nn.Linear(encoder_hidden_dims[-1], self.ested_state_num)
 
         # Optimizer
         self.learning_rate = learning_rate
@@ -110,14 +111,17 @@ class HIMEstimator(nn.Module):
             self.learning_rate = lr
             for param_group in self.optimizer.param_groups:
                 param_group['lr'] = self.learning_rate
-                
+
+
+        privi_state = next_critic_obs[:, self.num_one_step_obs:self.num_one_step_obs+self.ested_state_num].detach()
+
         vel = next_critic_obs[:, self.num_one_step_obs:self.num_one_step_obs+3].detach()
         next_obs = next_critic_obs.detach()[:, 3:self.num_one_step_obs+3]
 
         vel_pred, z, latent_mu, latent_logvar = self.encode(obs_history)
         # z_t = self.target(next_obs)
         # pred_vel, z_s = z_s[..., :3], z_s[..., 3:]
-        estimation_loss = F.mse_loss(vel_pred, vel)
+        estimation_loss = F.mse_loss(vel_pred, privi_state)
         obs_next_pred =self.decode(z, vel_pred) 
         reconstruct_loss = F.mse_loss(obs_next_pred, next_obs)
 
