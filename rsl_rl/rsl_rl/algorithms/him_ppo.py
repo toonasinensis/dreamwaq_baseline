@@ -120,7 +120,8 @@ class HIMPPO:
         mean_value_loss = 0
         mean_surrogate_loss = 0
         mean_estimation_loss = 0
-        mean_swap_loss = 0
+        mean_recon_loss  = 0
+        mean_height_recon_loss = 0
         mean_vae_kl_loss = 0
         generator = self.storage.mini_batch_generator(self.num_mini_batches, self.num_learning_epochs)
 
@@ -152,7 +153,7 @@ class HIMPPO:
                             param_group['lr'] = self.learning_rate
 
                 #Estimator Update
-                estimation_loss, swap_loss, vae_kl_loss = self.actor_critic.estimator.update(obs_batch, critic_obs_batch, next_critic_obs_batch, lr=self.learning_rate)
+                estimation_loss, recon_loss,height_recon_loss, vae_kl_loss = self.actor_critic.estimator.update(obs_batch, critic_obs_batch, next_critic_obs_batch, lr=self.learning_rate)
 
                 # Surrogate loss
                 ratio = torch.exp(actions_log_prob_batch - torch.squeeze(old_actions_log_prob_batch))
@@ -182,15 +183,17 @@ class HIMPPO:
                 mean_value_loss += value_loss.item()
                 mean_surrogate_loss += surrogate_loss.item()
                 mean_estimation_loss += estimation_loss
-                mean_swap_loss += swap_loss
+                mean_recon_loss  += recon_loss
+                mean_height_recon_loss +=height_recon_loss
                 mean_vae_kl_loss += vae_kl_loss
 
         num_updates = self.num_learning_epochs * self.num_mini_batches
         mean_value_loss /= num_updates
         mean_surrogate_loss /= num_updates
         mean_estimation_loss /= num_updates
-        mean_swap_loss /= num_updates
+        mean_recon_loss  /= num_updates
+        mean_height_recon_loss/=num_updates
         mean_vae_kl_loss/=num_updates
         self.storage.clear()
 
-        return mean_value_loss, mean_surrogate_loss, estimation_loss, swap_loss,mean_vae_kl_loss
+        return mean_value_loss, mean_surrogate_loss, estimation_loss, recon_loss,height_recon_loss,mean_vae_kl_loss

@@ -148,7 +148,7 @@ class HIMOnPolicyRunner:
                 start = stop
                 self.alg.compute_returns(critic_obs)
                 
-            mean_value_loss, mean_surrogate_loss, mean_estimation_loss, mean_swap_loss,mean_vae_kl_loss = self.alg.update()
+            mean_value_loss, mean_surrogate_loss, mean_estimation_loss, mean_obs_recon_loss,height_recon_loss,mean_vae_kl_loss = self.alg.update()
             stop = time.time()
             learn_time = stop - start
             if self.log_dir is not None:
@@ -187,7 +187,9 @@ class HIMOnPolicyRunner:
         self.writer.add_scalar('Loss/Estimation Loss', locs['mean_estimation_loss'], locs['it'])
         self.writer.add_scalar('Loss/vae_kl Loss', locs['mean_vae_kl_loss'], locs['it'])
 
-        self.writer.add_scalar('Loss/Swap Loss', locs['mean_swap_loss'], locs['it'])
+        self.writer.add_scalar('Loss/obs recon Loss', locs['mean_obs_recon_loss'], locs['it'])
+        self.writer.add_scalar('Loss/height recon Loss', locs['height_recon_loss'], locs['it'])
+
         self.writer.add_scalar('Loss/learning_rate', self.alg.learning_rate, locs['it'])
         self.writer.add_scalar('Policy/mean_noise_std', mean_std.item(), locs['it'])
         self.writer.add_scalar('Perf/total_fps', fps, locs['it'])
@@ -211,7 +213,9 @@ class HIMOnPolicyRunner:
                           f"""{'Estimation loss:':>{pad}} {locs['mean_estimation_loss']:.4f}\n"""
                           f"""{'vae_kl loss:':>{pad}} {locs['mean_vae_kl_loss']:.4f}\n"""
 
-                          f"""{'Swap loss:':>{pad}} {locs['mean_swap_loss']:.4f}\n"""
+                          f"""{'obs recon Loss:':>{pad}} {locs['mean_obs_recon_loss']:.4f}\n"""
+                          f"""{'height recon Loss:':>{pad}} {locs['height_recon_loss']:.4f}\n"""
+
                           f"""{'Mean action noise std:':>{pad}} {mean_std.item():.2f}\n"""
                           f"""{'Mean reward:':>{pad}} {statistics.mean(locs['rewbuffer']):.2f}\n"""
                           f"""{'Mean episode length:':>{pad}} {statistics.mean(locs['lenbuffer']):.2f}\n""")
@@ -227,7 +231,9 @@ class HIMOnPolicyRunner:
                           f"""{'Estimation loss:':>{pad}} {locs['mean_estimation_loss']:.4f}\n"""
                           f"""{'vae_kl loss:':>{pad}} {locs['mean_vae_kl_loss']:.4f}\n"""
 
-                          f"""{'Swap loss:':>{pad}} {locs['mean_swap_loss']:.4f}\n"""
+                          f"""{'obs recon Loss:':>{pad}} {locs['mean_obs_recon_loss']:.4f}\n"""
+                          f"""{'height recon Loss:':>{pad}} {locs['height_recon_loss']:.4f}\n"""
+
                           f"""{'Mean action noise std:':>{pad}} {mean_std.item():.2f}\n""")
                         #   f"""{'Mean reward/step:':>{pad}} {locs['mean_reward']:.2f}\n"""
                         #   f"""{'Mean episode length/episode:':>{pad}} {locs['mean_trajectory_length']:.2f}\n""")
