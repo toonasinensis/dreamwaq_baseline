@@ -88,12 +88,12 @@ def play(args, x_vel=1.0, y_vel=0.0, yaw_vel=0.0):
     camera_vel = np.array([1., 1., 0.])
     camera_direction = np.array(env_cfg.viewer.lookat) - np.array(env_cfg.viewer.pos)
     img_idx = 0
-    policy_exp = torch.jit.load("../../logs/rough_lite3/exported/policies/policy.pt")
-    policy_exp.eval()
-    policy_exp.to(device=env.device)
+    # policy_exp = torch.jit.load("../../logs/rough_lite3/exported/policies/policy.pt")
+    # policy_exp.eval()
+    # policy_exp.to(device=env.device)
     for i in range(10*int(env.max_episode_length)):
-          
-        actions = policy_exp(obs.detach())
+        # print("obs.size",obs.size())
+        actions = policy(obs.detach())
 
         env.commands[:, 0] = x_vel
         env.commands[:, 1] = y_vel
