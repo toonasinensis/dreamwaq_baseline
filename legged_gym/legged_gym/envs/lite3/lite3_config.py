@@ -118,10 +118,10 @@ class Lite3RoughCfg( LeggedRobotCfg ):
             foot_slide = -0.05
             
             joint_power = -2e-5
-            # tracking_lin_vel = 1.0
-            # tracking_ang_vel = 0.5
-            tracking_goal_vel = 1.5
-            tracking_yaw = 0.5
+            tracking_lin_vel = 1.0
+            tracking_ang_vel = 0.5
+            # tracking_goal_vel = 1.5
+            # tracking_yaw = 0.5
             lin_vel_z = -2.0
             ang_vel_xy = -0.05
             dof_acc = -2.5e-7

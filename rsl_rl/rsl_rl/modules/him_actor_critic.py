@@ -200,7 +200,7 @@ class HIMActorCritic(nn.Module):
         return self.distribution.log_prob(actions).sum(dim=-1)
 
     def act_inference(self, obs_history, observations=None):
-        vel, latent = self.estimator(obs_history)
+        vel, latent = self.estimator(obs_history[:,:self.num_one_step_obs*6])
         height = obs_history[:,self.num_one_step_obs*6:self.num_one_step_obs*6+187]
         # print(height[0,:])
         height_latent =  self.height_mlp(height)
