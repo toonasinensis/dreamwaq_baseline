@@ -43,7 +43,7 @@ def play(args, x_vel=1.0, y_vel=0.0, yaw_vel=0.0):
     env_cfg, train_cfg = task_registry.get_cfgs(name=args.task)
     # override some parameters for testing
     env_cfg.env.num_envs = min(env_cfg.env.num_envs, 100)
-    env_cfg.terrain.num_rows = 10
+    env_cfg.terrain.num_rows = 11
     env_cfg.terrain.num_cols = 10
     env_cfg.terrain.curriculum = True
     env_cfg.terrain.max_init_terrain_level = 9

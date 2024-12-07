@@ -118,7 +118,6 @@ class Terrain:
         discrete_obstacles_height = 0.05 + difficulty * 0.1
         stepping_stones_size = 1.5 * (1.05 - difficulty)
         stone_distance = 0.05 if difficulty==0 else 0.1
-        gap_size = 0.6 * difficulty
         pit_depth = 0.6 * difficulty
         if choice < self.proportions[0]:
             if choice < self.proportions[0]/ 2:
@@ -126,6 +125,7 @@ class Terrain:
             terrain_utils.pyramid_sloped_terrain(terrain, slope=slope, platform_size=3.)
             # my_pyramid_stairs_terrain(terrain, step_width=0.30, step_height=-step_height, platform_size=3.)
         elif choice < self.proportions[1]:
+           gap_size = 0.6 * difficulty
            gap_terrain(terrain, gap_size=gap_size, platform_size=3.)
         elif choice < self.proportions[2]:
              pit_terrain(terrain, depth=pit_depth, platform_size=3.)
