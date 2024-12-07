@@ -118,30 +118,28 @@ class Terrain:
         discrete_obstacles_height = 0.05 + difficulty * 0.1
         stepping_stones_size = 1.5 * (1.05 - difficulty)
         stone_distance = 0.05 if difficulty==0 else 0.1
-        gap_size = 1. * difficulty
-        pit_depth = 1. * difficulty
+        gap_size = 0.6 * difficulty
+        pit_depth = 0.6 * difficulty
         if choice < self.proportions[0]:
             if choice < self.proportions[0]/ 2:
                 slope *= -1
             terrain_utils.pyramid_sloped_terrain(terrain, slope=slope, platform_size=3.)
+            # my_pyramid_stairs_terrain(terrain, step_width=0.30, step_height=-step_height, platform_size=3.)
         elif choice < self.proportions[1]:
-            terrain_utils.pyramid_sloped_terrain(terrain, slope=slope, platform_size=3.)
-            terrain_utils.random_uniform_terrain(terrain, min_height=-amplitude, max_height=amplitude, step=0.005, downsampled_scale=0.2)
-        elif choice < self.proportions[3]:
-            if choice<self.proportions[2]:
-                step_height *= -1
-            terrain_utils.pyramid_stairs_terrain(terrain, step_width=0.30, step_height=step_height, platform_size=3.)
+           gap_terrain(terrain, gap_size=gap_size, platform_size=3.)
+        elif choice < self.proportions[2]:
+             pit_terrain(terrain, depth=pit_depth, platform_size=3.)
         elif choice < self.proportions[4]:
-            num_rectangles = 20
-            rectangle_min_size = 1.
-            rectangle_max_size = 2.
-            terrain_utils.discrete_obstacles_terrain(terrain, discrete_obstacles_height, rectangle_min_size, rectangle_max_size, num_rectangles, platform_size=3.)
+            if choice<self.proportions[3]:
+                step_height *= -1
+            my_pyramid_stairs_terrain(terrain, step_width=0.30, step_height=step_height, platform_size=3.)
+        
         elif choice < self.proportions[5]:
             terrain_utils.stepping_stones_terrain(terrain, stone_size=stepping_stones_size, stone_distance=stone_distance, max_height=0., platform_size=4.)
         elif choice < self.proportions[6]:
             gap_terrain(terrain, gap_size=gap_size, platform_size=3.)
         else:
-            pit_terrain(terrain, depth=pit_depth, platform_size=4.)
+            pit_terrain(terrain, depth=pit_depth, platform_size=.3)
         
         return terrain
 
@@ -186,3 +184,37 @@ def pit_terrain(terrain, depth, platform_size=1.):
     y1 = terrain.width // 2 - platform_size
     y2 = terrain.width // 2 + platform_size
     terrain.height_field_raw[x1:x2, y1:y2] = -depth
+
+
+def my_pyramid_stairs_terrain(terrain, step_width, step_height, platform_size=1.):
+    """
+    Generate stairs
+
+    Parameters:
+        terrain (terrain): the terrain
+        step_width (float):  the width of the step [meters]
+        step_height (float): the step_height [meters]
+        platform_size (float): size of the flat platform at the center of the terrain [meters]
+    Returns:
+        terrain (SubTerrain): update terrain
+    """
+    # switch parameters to discrete units
+    step_width = int(step_width / terrain.horizontal_scale)
+    step_height = int(step_height / terrain.vertical_scale)
+    platform_size = int(platform_size / terrain.horizontal_scale)
+
+    height = -step_height
+    start_x = 0
+    stop_x = terrain.width
+    start_y = 0
+    stop_y = terrain.length
+
+    while (stop_x - start_x) > platform_size and (stop_y - start_y) > platform_size:
+        start_x += step_width
+        stop_x -= step_width
+        start_y += step_width
+        stop_y -= step_width
+        
+        height += step_height
+        terrain.height_field_raw[start_x: stop_x, start_y: stop_y] = height
+    return terrain
