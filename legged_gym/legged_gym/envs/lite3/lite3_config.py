@@ -132,6 +132,7 @@ class Lite3RoughCfg( LeggedRobotCfg ):
             # dof_pos_limits = - 0.05 #TODO
             # dof_pos = - 0.05 #TODO
             stumble = - 1.0
+            feet_edge = - 1.0
             # -------------------------
 
         only_positive_rewards = False # if true negative total rewards are clipped at zero (avoids early termination problems)

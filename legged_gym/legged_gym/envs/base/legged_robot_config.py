@@ -46,9 +46,21 @@ class LeggedRobotCfg(BaseConfig):
 
     class terrain:
         mesh_type = 'trimesh' # "heightfield" # none, plane, heightfield or trimesh
+        #new add:
+        hf2mesh_method = "grid"  # grid or fast
+        edge_width_thresh = 0.05
+        simplify_grid = False
+        all_vertical = False
+        no_flat = True
+        downsampled_scale = 0.075
+        height = [0.01, 0.03]
+
+
+
+        #new add end
         horizontal_scale = 0.1 # [m]
         vertical_scale = 0.005 # [m]
-        border_size = 25 # [m]
+        border_size = 5 # [m] #useless ,need to smaller,not 25m
         curriculum = True
         static_friction = 1.0
         dynamic_friction = 1.0
@@ -70,7 +82,8 @@ class LeggedRobotCfg(BaseConfig):
         # terrain_proportions = [0.0, 0.0, 0.5, 0.5, 0.0]
         # trimesh only:
         slope_treshold = 0.75 # slopes above this threshold will be corrected to vertical surfaces
-
+        origin_zero_z = True
+        
     class commands:
         curriculum = True
         max_curriculum = 3.0
