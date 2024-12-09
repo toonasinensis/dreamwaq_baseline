@@ -87,7 +87,6 @@ class Terrain:
             for i in range(self.cfg.num_rows):
                 difficulty = i / self.cfg.num_rows
                 choice = j / self.cfg.num_cols + 0.001
-
                 terrain = self.make_terrain(choice, difficulty)
                 self.add_terrain_to_map(terrain, i, j)
 
@@ -108,7 +107,7 @@ class Terrain:
     
     def make_terrain(self, choice, difficulty):
         terrain = terrain_utils.SubTerrain(   "terrain",
-                                width=self.width_per_env_pixels,
+                                width=self.length_per_env_pixels,
                                 length=self.width_per_env_pixels,
                                 vertical_scale=self.cfg.vertical_scale,
                                 horizontal_scale=self.cfg.horizontal_scale)
@@ -128,11 +127,12 @@ class Terrain:
            gap_size = 0.6 * difficulty
            gap_terrain(terrain, gap_size=gap_size, platform_size=3.)
         elif choice < self.proportions[2]:
+            # pass
              pit_terrain(terrain, depth=pit_depth, platform_size=3.)
         elif choice < self.proportions[4]:
             if choice<self.proportions[3]:
                 step_height *= -1
-            my_pyramid_stairs_terrain(terrain, step_width=0.30, step_height=step_height, platform_size=3.)
+            # my_pyramid_stairs_terrain(terrain, step_width=0.30, step_height=step_height, platform_size=3.)
         
         elif choice < self.proportions[5]:
             terrain_utils.stepping_stones_terrain(terrain, stone_size=stepping_stones_size, stone_distance=stone_distance, max_height=0., platform_size=4.)
@@ -153,16 +153,24 @@ class Terrain:
         end_y = self.border + (j + 1) * self.width_per_env_pixels
         self.height_field_raw[start_x: end_x, start_y:end_y] = terrain.height_field_raw
 
-        env_origin_x = (i + 0.5) * self.env_length
+        env_origin_x = (i + 0.5 ) * self.env_length
         env_origin_y = (j + 0.5) * self.env_width
         x1 = int((self.env_length/2. - 1) / terrain.horizontal_scale)
         x2 = int((self.env_length/2. + 1) / terrain.horizontal_scale)
         y1 = int((self.env_width/2. - 1) / terrain.horizontal_scale)
         y2 = int((self.env_width/2. + 1) / terrain.horizontal_scale)
         env_origin_z = np.max(terrain.height_field_raw[x1:x2, y1:y2])*terrain.vertical_scale
+        choice = j / self.cfg.num_cols + 0.001
+        if choice<self.proportions[1] and choice>self.proportions[0]:#gap 
+            offset = 0.8#offset 0.5,s unit is [m]
+            offset_proportion = offset/ self.env_length
+
+            env_origin_x = (i + offset_proportion) * self.env_length
+
         self.env_origins[i, j] = [env_origin_x, env_origin_y, env_origin_z]
 
-def gap_terrain(terrain, gap_size, platform_size=1.):
+def gap_terrain(terrain, gap_size, platform_size=1.,num_gap =4,gap_depth = [0.4,1.0]):
+
     gap_size = int(gap_size / terrain.horizontal_scale)
     platform_size = int(platform_size / terrain.horizontal_scale)
 
@@ -172,9 +180,22 @@ def gap_terrain(terrain, gap_size, platform_size=1.):
     x2 = x1 + gap_size
     y1 = (terrain.width - platform_size) // 2
     y2 = y1 + gap_size
-   
-    terrain.height_field_raw[center_x-x2 : center_x + x2, center_y-y2 : center_y + y2] = -1000
-    terrain.height_field_raw[center_x-x1 : center_x + x1, center_y-y1 : center_y + y1] = 0
+
+    # print("terrain.length",terrain.length)
+    dis_between_gap_size = int(terrain.length/num_gap)
+    # dis_between_gap_size = int(dis_between_gap/terrain.horizontal_scale)
+    # print("dis_between_gap_size",dis_between_gap_size)
+    # terrain.height_field_raw[center_x-x2 : center_x+x2, center_y-y2 : center_y + y2] = -1000
+    # terrain.height_field_raw[center_x-x1 : center_x + x1, center_y-y1 : center_y + y1] = 0
+    gap_depth = -round(np.random.uniform(gap_depth[0], gap_depth[1]) / terrain.vertical_scale)
+
+    for i in range(num_gap):
+        offset = i*dis_between_gap_size
+        # print("dis_between_gap_size: ",dis_between_gap_size)
+        terrain.height_field_raw[offset : offset+gap_size, 0 :terrain.width] = gap_depth
+    
+    terrain.height_field_raw[0: terrain.length, 0: gap_size] = gap_depth
+    terrain.height_field_raw[0: terrain.length,terrain.width-gap_size : terrain.width] = gap_depth
 
 def pit_terrain(terrain, depth, platform_size=1.):
     depth = int(depth / terrain.vertical_scale)

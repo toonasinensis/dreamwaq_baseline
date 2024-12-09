@@ -46,7 +46,7 @@ class LeggedRobotCfg(BaseConfig):
 
     class terrain:
         mesh_type = 'trimesh' # "heightfield" # none, plane, heightfield or trimesh
-        horizontal_scale = 0.05 # [m]
+        horizontal_scale = 0.1 # [m]
         vertical_scale = 0.005 # [m]
         border_size = 25 # [m]
         curriculum = True
@@ -60,12 +60,12 @@ class LeggedRobotCfg(BaseConfig):
         selected = False # select a unique terrain type and pass all arguments
         terrain_kwargs = None # Dict of arguments for selected terrain
         max_init_terrain_level = 5 # starting curriculum state
-        terrain_length = 8.
-        terrain_width = 8.
+        terrain_length = 8.#y
+        terrain_width = 8.#x
         num_rows= 11 # number of terrain rows (levels)
         num_cols = 20 # number of terrain cols (types)
         # terrain types: [smooth slope, rough slope, stairs up, stairs down, discrete]
-        terrain_proportions = [0.2, 0.2, 0.2, 0.2, 0.2]
+        terrain_proportions = [0.2, 0.6, 0.2, 0.2, 0.2]
         # terrain_proportions = [0.5, 0.5, 0.05, 0.05, 0.02]
         # terrain_proportions = [0.0, 0.0, 0.5, 0.5, 0.0]
         # trimesh only:

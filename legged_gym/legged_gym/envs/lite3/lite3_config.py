@@ -98,9 +98,9 @@ class Lite3RoughCfg( LeggedRobotCfg ):
     class asset( LeggedRobotCfg.asset ):
         file = '{LEGGED_GYM_ROOT_DIR}/resources/robots/Lite3/urdf/Lite3.urdf'
         name = "lite3"
-        foot_name = "foot"
+        foot_name = "FOOT"
         penalize_contacts_on = ["THIGH", "SHANK", "TORSO"]
-        terminate_after_contacts_on = ["TORSO"]
+        terminate_after_contacts_on = ["TORSO", "THIGH"]
         privileged_contacts_on = ["TORSO", "THIGH", "SHANK"]
         self_collisions = 1 # 1 to disable, 0 to enable...bitwise filter
         flip_visual_attachments = False # Some .obj meshes must be flipped from y-up to z-up

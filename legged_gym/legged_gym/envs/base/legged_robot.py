@@ -494,6 +494,10 @@ class LeggedRobot(BaseTask):
         # set small commands to zero
         self.commands[env_ids, :2] *= (torch.norm(self.commands[env_ids, :2], dim=1) > 0.2).unsqueeze(1)
 
+        self.pos_target[env_ids,:2] =  self.commands[env_ids, :2]*self.cfg.commands.resampling_time + self.root_states[env_ids,:2]
+        self.pos_target[env_ids, 2] = self.root_states[env_ids,2]
+        self.target_pos_rel = self.pos_target[:, :2] - self.root_states[:, :2]
+        # print("env_ids: ",env_ids,self.pos_target[env_ids, :],self.root_states[env_ids,2])
     def _compute_torques(self, actions):
         """ Compute torques from actions.
             Actions can be interpreted as position or velocity targets given to a PD controller, or directly as scaled torques.
@@ -552,7 +556,7 @@ class LeggedRobot(BaseTask):
         if self.custom_origins:
             self.root_states[env_ids] = self.base_init_state
             self.root_states[env_ids, :3] += self.env_origins[env_ids]
-            self.root_states[env_ids, :2] += torch_rand_float(-1., 1., (len(env_ids), 2), device=self.device) # xy position within 1m of the center
+            # self.root_states[env_ids, :2] += torch_rand_float(-1., 1., (len(env_ids), 2), device=self.device) # xy position within 1m of the center
         else:
             self.root_states[env_ids] = self.base_init_state
             self.root_states[env_ids, :3] += self.env_origins[env_ids]
@@ -696,6 +700,10 @@ class LeggedRobot(BaseTask):
             self.height_points = self._init_height_points()
         self.measured_heights = self._get_heights()
         self.base_height_points = self._init_base_height_points()
+
+
+        self.pos_target = torch.zeros(self.num_envs, 3, dtype=torch.float, device=self.device, requires_grad=False)
+
 
         # joint positions offsets and PD gains
         self.default_dof_pos = torch.zeros(self.num_dof, dtype=torch.float, device=self.device, requires_grad=False)
@@ -1287,3 +1295,27 @@ class LeggedRobot(BaseTask):
     def _reward_feet_contact_forces(self):
         # penalize high contact forces
         return torch.sum((torch.norm(self.contact_forces[:, self.feet_indices, :], dim=-1) -  self.cfg.rewards.max_contact_force).clip(min=0.), dim=1)
+
+    def _reward_close_target_xy(self):
+        # print("root_state",self.root_states.size())
+        # print("pos_target",self.pos_target)
+        rew_target_xy_ = 1/(1+torch.sum(torch.square(self.root_states[:, :2] - self.pos_target[:, :2]), dim=1))
+        print(rew_target_xy_)
+        return rew_target_xy_
+    
+    # def _reward_close_target_xy(self):
+    #     # print("root_state",self.root_states.size())
+    #     # print("pos_target",self.pos_target)
+        
+    #     rew_target_xy_ = 1/(self.cfg.commands.resampling_time*2)*1/(1+torch.sum(torch.square(self.root_states[:, :2] - self.pos_target[:, :2]), dim=1))
+    #     print(rew_target_xy_)
+    #     return rew_target_xy_
+
+
+    def _reward_tracking_goal_vel(self):
+        
+        norm = torch.norm(self.target_pos_rel, dim=-1, keepdim=True)
+        target_vec_norm = self.target_pos_rel / (norm + 1e-5)
+        cur_vel = self.root_states[:, 7:9]
+        rew = torch.sum(target_vec_norm * cur_vel, dim=-1)
+        return rew
