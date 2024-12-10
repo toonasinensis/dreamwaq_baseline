@@ -44,6 +44,30 @@ class LeggedRobotCfg(BaseConfig):
         send_timeouts = True # send time out information to the algorithm
         episode_length_s = 20 # episode length in seconds
 
+    class depth:
+        use_camera = True
+        camera_num_envs = 192
+        camera_terrain_num_rows = 11
+        camera_terrain_num_cols = 20
+
+        position = [0.27, 0, 0.03]  # front camera
+        angle = [-5 +10, 5 + 10]  # positive pitch down
+
+        update_interval = 5  # 5 works without retraining, 8 worse
+
+        original = (106, 60)
+        resized = (87, 58)
+        horizontal_fov = 87
+        buffer_len = 2
+        
+        near_clip = 0
+        far_clip = 2
+        dis_noise = 0.0
+        
+        scale = 1
+        invert = True
+
+
     class terrain:
         mesh_type = 'trimesh' # "heightfield" # none, plane, heightfield or trimesh
         #new add:
@@ -77,7 +101,7 @@ class LeggedRobotCfg(BaseConfig):
         num_rows= 11 # number of terrain rows (levels)
         num_cols = 20 # number of terrain cols (types)
         # terrain types: [smooth slope, rough slope, stairs up, stairs down, discrete]
-        terrain_proportions = [0.2, 0.6, 0.2, 0.2, 0.2]
+        terrain_proportions = [0.1, 0.8, 0.2, 0.2, 0.2]
         # terrain_proportions = [0.5, 0.5, 0.05, 0.05, 0.02]
         # terrain_proportions = [0.0, 0.0, 0.5, 0.5, 0.0]
         # trimesh only:

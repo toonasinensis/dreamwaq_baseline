@@ -143,8 +143,14 @@ class Terrain:
         if choice < self.proportions[0]:
             if choice < self.proportions[0]/ 2:
                 slope *= -1
-            terrain_utils.pyramid_sloped_terrain(terrain, slope=slope, platform_size=3.)
+
+            gap_size = 0.6 * difficulty
+
+            gap_terrain(terrain, gap_size=gap_size, platform_size=3.)
             add_roughness(self,terrain=terrain,difficulty=difficulty)
+
+            # terrain_utils.pyramid_sloped_terrain(terrain, slope=slope, platform_size=3.)
+            # add_roughness(self,terrain=terrain,difficulty=difficulty)
             # my_pyramid_stairs_terrain(terrain, step_width=0.30, step_height=-step_height, platform_size=3.)
         elif choice < self.proportions[1]:
            gap_size = 0.6 * difficulty
