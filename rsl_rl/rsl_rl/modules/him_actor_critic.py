@@ -206,6 +206,12 @@ class HIMActorCritic(nn.Module):
         height_latent =  self.height_mlp(height)
         actions_mean = self.actor(torch.cat((obs_history[:,:self.num_one_step_obs], vel, latent,height_latent), dim=-1))
         return actions_mean
+    
+    
+    def act_inference_wo_height(self, obs_history,height_latent, observations=None):
+        vel, latent = self.estimator(obs_history[:,:self.num_one_step_obs*6])
+        actions_mean = self.actor(torch.cat((obs_history[:,:self.num_one_step_obs], vel, latent,height_latent), dim=-1))
+        return actions_mean
 
     def evaluate(self, critic_observations, **kwargs):
         value = self.critic(critic_observations)
