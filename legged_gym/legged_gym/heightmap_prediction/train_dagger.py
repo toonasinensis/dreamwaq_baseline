@@ -4,7 +4,6 @@ from absl import flags
 
 from datetime import datetime
 from isaacgym.torch_utils import to_torch  # pylint: disable=unused-import
-from ml_collections.config_flags import config_flags
 
 from legged_gym import LEGGED_GYM_ROOT_DIR
 import os
@@ -21,14 +20,6 @@ from legged_gym.heightmap_prediction.depth_backbone import DepthOnlyFCBackbone58
 from legged_gym.heightmap_prediction.replay_buffer import ReplayBuffer
 from legged_gym.heightmap_prediction.lstm_heightmap_predictor import LSTMHeightmapPredictor
 
-config_flags.DEFINE_config_file(
-    "config", "src/agents/heightmap_prediction/configs/lstm_heightmap.py",
-    "experiment configuration")
-flags.DEFINE_string("logdir", "logs", "logdir")
-flags.DEFINE_bool("use_gpu", True, "whether to use GPU.")
-flags.DEFINE_bool("show_gui", False, "whether to show GUI.")
-
-FLAGS = flags.FLAGS
 
 
 def main(args):
@@ -36,7 +27,7 @@ def main(args):
   # config = FLAGS.config
   env_cfg, train_cfg = task_registry.get_cfgs(name=args.task)
   # override some parameters for testing
-  env_cfg.env.num_envs = min(env_cfg.env.num_envs, 100)
+  env_cfg.env.num_envs = min(env_cfg.env.num_envs, 200)
   env_cfg.terrain.num_rows = 11
   env_cfg.terrain.num_cols = 10
   env_cfg.terrain.curriculum = True
@@ -49,8 +40,8 @@ def main(args):
   env_cfg.commands.heading_command = False
   # prepare environment
     
-  env_cfg.env.episode_length_s = 120 # 2分钟
-  env_cfg.commands.resampling_time = 120 # 2分钟更新一次命令
+  env_cfg.env.episode_length_s = 20 # 2分钟
+  env_cfg.commands.resampling_time = 20 # 2分钟更新一次命令
   
   env, _ = task_registry.make_env(name=args.task, args=args, env_cfg=env_cfg)
 
@@ -76,7 +67,6 @@ def main(args):
   ppo_runner, train_cfg = task_registry.make_alg_runner(env=env, name=args.task, args=args, train_cfg=train_cfg)
   policy = ppo_runner.get_inference_policy_wo(device=env.device)
 
-  dethbackbone = DepthOnlyFCBackbone58x87(32)
 
   # Initialize heightmap predictor
   heightmap_predictor = LSTMHeightmapPredictor(
@@ -87,7 +77,7 @@ def main(args):
   ).to(env.device)
   # Initialize replay buffer
   replay_buffer = ReplayBuffer(env, device=env.device)
-  use_save_data = True
+  use_save_data = False
   if not use_save_data:
     rewards,  _ = replay_buffer.collect_data(
         policy, heightmap_predictor=None, num_steps=5000)
@@ -107,8 +97,8 @@ def main(args):
     rewards, _ = replay_buffer.collect_data(
         policy,
         heightmap_predictor=heightmap_predictor,
-        num_steps=50)
-    replay_buffer.save(os.path.join(logdir, "replay_buffer.pt"))
+        num_steps=5000)
+    replay_buffer.save(os.path.join(logdir, f"replay_buffer{step}.pt"))
 
     # Log Rewards and Terrain Levels
     print(f"[Dagger step {step}] Average Reward: {np.mean(rewards)}, ")

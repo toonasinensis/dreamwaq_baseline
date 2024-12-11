@@ -119,8 +119,8 @@ class ReplayBuffer:
           action = policy.act_inference(obs.detach())
         else:
           height = heightmap_predictor.forward(
-              base_state=self._env.get_observations()[:,:-187],
-              depth_image=curr_imgs)
+              depth_image=curr_imgs
+              ,proprio_hist = self._env.get_observations()[:,:-187])
           obs = self._env.get_observations()
           action = policy.act_inference(obs.detach())
 
@@ -165,7 +165,7 @@ class ReplayBuffer:
     traj_lengths = [self._base_states[idx].shape[0] for idx in traj_indices]
     max_length = max(traj_lengths)
     num_trajs = len(traj_indices)
-    print("self._depth_imgs[0].shape",self._depth_imgs[0].size())
+    # print("self._depth_imgs[0].shape",self._depth_imgs[0].size())
     base_states = torch.zeros(
         (max_length, num_trajs, self._base_states[0].shape[1]),
         device=self._device)
