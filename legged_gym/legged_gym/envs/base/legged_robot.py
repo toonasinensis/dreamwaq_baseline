@@ -227,7 +227,7 @@ class LeggedRobot(BaseTask):
                 window_name = "Depth Image"
                 cv2.namedWindow(window_name, cv2.WINDOW_NORMAL)
                 cv2.resizeWindow(window_name, 800, 600)
-                print(self.depth_buffer[self.lookat_id, -1].cpu().numpy())
+                # print(self.depth_buffer[self.lookat_id, -1].cpu().numpy())
                 cv2.imshow(window_name, self.depth_buffer[self.lookat_id, -1].cpu().numpy() + 0.5)
                 cv2.waitKey(1)
         # depth_buffer = np.zeros([58,87])
@@ -328,7 +328,6 @@ class LeggedRobot(BaseTask):
             self.rew_buf += rew
             self.episode_sums["termination"] += rew
     
-    # old shit
     def compute_observations(self):
         """ Computes observations
         """
@@ -357,7 +356,11 @@ class LeggedRobot(BaseTask):
         # print("self.heights",heights.size())
 
         self.privileged_obs_buf = torch.cat((current_obs[:, :self.num_one_step_privileged_obs], self.privileged_obs_buf[:, :-self.num_one_step_privileged_obs]), dim=-1)
+    
 
+    def get_depth(self):
+
+        return self.depth_buffer[:, -1]
     
     def get_current_obs(self):
         current_obs = torch.cat((   self.commands[:, :3] * self.commands_scale,

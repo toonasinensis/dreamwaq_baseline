@@ -71,7 +71,7 @@ def play(args, x_vel=1.0, y_vel=0.0, yaw_vel=0.0):
     train_cfg.runner.resume = True
     ppo_runner, train_cfg = task_registry.make_alg_runner(env=env, name=args.task, args=args, train_cfg=train_cfg)
     policy = ppo_runner.get_inference_policy(device=env.device)
-
+    policy_ = ppo_runner.get_inference_policy_wo(device=env.device)
 
     # export policy as a jit module (used to run it from C++)
     if EXPORT_POLICY:
@@ -93,8 +93,9 @@ def play(args, x_vel=1.0, y_vel=0.0, yaw_vel=0.0):
     # policy_exp.to(device=env.device)
     for i in range(10*int(env.max_episode_length)):
           
-        actions = policy(obs.detach())
-
+        actions = policy_.act_inference(obs.detach())
+        # height_latent = policy_.height_mlp(obs.detach()[:,-187:])
+        # actions = policy_.act_inference_wo_height(obs.detach()[:,:-187],height_latent)
         env.commands[:, 0] = x_vel
         env.commands[:, 1] = y_vel
         env.commands[:, 2] = yaw_vel
