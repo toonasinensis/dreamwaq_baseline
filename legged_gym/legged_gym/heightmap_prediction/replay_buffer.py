@@ -108,21 +108,22 @@ class ReplayBuffer:
                        device=self._device))
           curr_imgs.append(self._image_recorders[env_id].get_image())
         curr_imgs = torch.stack(curr_imgs, dim=0).clone()
-
+        self._env.commands[:, 0] = 1
+        self._env.commands[:, 1] = 0
+        self._env.commands[:, 2] = 0
+        self._env.commands[:, 3] = 0
         if heightmap_predictor is None:
-          self._env.commands[:, 0] = 1
-          self._env.commands[:, 1] = 0
-          self._env.commands[:, 2] = 0
-          self._env.commands[:, 3] = 0
           # print(self._env.commands)
           obs = self._env.get_observations()
           action = policy.act_inference(obs.detach())
         else:
-          height = heightmap_predictor.forward(
+          height_predicted = heightmap_predictor.forward(
               depth_image=curr_imgs
               ,proprio_hist = self._env.get_observations()[:,:-187])
+          
           obs = self._env.get_observations()
-          action = policy.act_inference(obs.detach())
+          # height_latent = policy.height_mlp(obs.detach()[:,-187:])
+          action = policy.act_inference_wo_height(obs.detach()[:,:-187],height_predicted)
 
         base_states.append(self._env.get_observations()[:,:-187])
         self._env.get_observations()[:,-187:]

@@ -20,7 +20,7 @@ from legged_gym.heightmap_prediction.depth_backbone import DepthOnlyFCBackbone58
 from legged_gym.heightmap_prediction.replay_buffer import ReplayBuffer
 from legged_gym.heightmap_prediction.lstm_heightmap_predictor import LSTMHeightmapPredictor
 
-
+import torch
 
 def main(args):
   # del argv  # unused
@@ -84,10 +84,12 @@ def main(args):
     
     print(f"[Initial Rollout] Average Reward: {np.mean(rewards)}, ")
     replay_buffer.save(os.path.join(logdir, "replay_buffer.pt"))
+    writer.add_scalar("Rollout/Initial", np.mean(rewards), 0)
+
   else:
     replay_buffer_path =  "/home/tian/Desktop/deep/dreamwaq_baseline/legged_gym/logs/height_est/2024_12_11_13_23_29/replay_buffer.pt"
     replay_buffer.load(replay_buffer_path)
-  for step in range(30):
+  for step in range(3000):
     # Train student policy
     loss = heightmap_predictor.train_on_data(replay_buffer,
                                              batch_size=4,
@@ -98,14 +100,19 @@ def main(args):
         policy,
         heightmap_predictor=heightmap_predictor,
         num_steps=5000)
-    replay_buffer.save(os.path.join(logdir, f"replay_buffer{step}.pt"))
+    # replay_buffer.save(os.path.join(logdir, f"replay_buffer{step}.pt"))
 
+
+    # 记录显存使用情况
+    allocated = torch.cuda.memory_allocated() / (1024 ** 2)  # 转换为 MB
+    reserved = torch.cuda.memory_reserved() / (1024 ** 2)    # 转换为 MB
     # Log Rewards and Terrain Levels
     print(f"[Dagger step {step}] Average Reward: {np.mean(rewards)}, ")
     writer.add_scalar("Rollout/average_reward", np.mean(rewards), step)
-    # writer.add_scalar("Rollout/average_cycles", np.mean(cycles), step)
     writer.add_scalar("Heightmap Training/MSE", loss, step)
 
+    writer.add_scalar('Memory/Allocated', allocated, step)
+    writer.add_scalar('Memory/Reserved', reserved, step)
 
 if __name__ == "__main__":
   args = get_args()
