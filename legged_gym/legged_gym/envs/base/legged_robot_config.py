@@ -101,7 +101,8 @@ class LeggedRobotCfg(BaseConfig):
         num_rows= 11 # number of terrain rows (levels)
         num_cols = 20 # number of terrain cols (types)
         # terrain types: [smooth slope, rough slope, stairs up, stairs down, discrete]
-        terrain_proportions = [0.0, 1.0, 0.2, 0.2, 0.2]
+        terrain_proportions = [0.20, 0.80, 0.2, 0.2, 0.2]
+        non_parkour_terrains = terrain_proportions[0]#+...
         # terrain_proportions = [0.5, 0.5, 0.05, 0.05, 0.02]
         # terrain_proportions = [0.0, 0.0, 0.5, 0.5, 0.0]
         # trimesh only:
@@ -115,6 +116,12 @@ class LeggedRobotCfg(BaseConfig):
         resampling_time = 10. # time before command are changed[s]
         heading_command = True # if true: compute ang vel command from heading error
         class ranges:
+            lin_vel_x = [-1.0, 1.0] # min max [m/s]
+            lin_vel_y = [-1.0, 1.0]   # min max [m/s]
+            ang_vel_yaw = [-3.14, 3.14]    # min max [rad/s]
+            heading = [-3.14, 3.14]
+
+        class parkour_ranges:
             lin_vel_x = [-1.0, 1.0] # min max [m/s]
             lin_vel_y = [-1.0, 1.0]   # min max [m/s]
             ang_vel_yaw = [-3.14, 3.14]    # min max [rad/s]

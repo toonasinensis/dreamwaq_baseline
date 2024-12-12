@@ -149,9 +149,9 @@ class Terrain:
             # add_roughness(self,terrain=terrain,difficulty=difficulty)
             # my_pyramid_stairs_terrain(terrain, step_width=0.30, step_height=-step_height, platform_size=3.)
         elif choice < self.proportions[1]:
-           gap_size = 0.6 * difficulty+0.1
+           gap_size = 0.6 * difficulty
            gap_terrain(terrain, gap_size=gap_size, platform_size=3.)
-           add_roughness(self,terrain=terrain,difficulty=difficulty)
+        #    add_roughness(self,terrain=terrain,difficulty=difficulty)
 
         elif choice < self.proportions[2]:
             # pass
@@ -196,7 +196,7 @@ class Terrain:
 
         self.env_origins[i, j] = [env_origin_x, env_origin_y, env_origin_z]
 
-def gap_terrain(terrain, gap_size, platform_size=1.,num_gap =4,gap_depth = [0.4,1.0]):
+def gap_terrain(terrain, gap_size, platform_size=1.,num_gap =4,gap_depth = [0.4,1.0],random_pos_x = [0.1,0.3]):
 
     gap_size = int(gap_size / terrain.horizontal_scale)
     platform_size = int(platform_size / terrain.horizontal_scale)
@@ -207,6 +207,8 @@ def gap_terrain(terrain, gap_size, platform_size=1.,num_gap =4,gap_depth = [0.4,
     x2 = x1 + gap_size
     y1 = (terrain.width - platform_size) // 2
     y2 = y1 + gap_size
+    gap_move_x_min = round(random_pos_x[0]/terrain.horizontal_scale)
+    gap_move_x_max = round(random_pos_x[1]/terrain.horizontal_scale)
 
     # print("terrain.length",terrain.length)
     dis_between_gap_size = int(terrain.length/num_gap)
@@ -217,7 +219,8 @@ def gap_terrain(terrain, gap_size, platform_size=1.,num_gap =4,gap_depth = [0.4,
     gap_depth = -round(np.random.uniform(gap_depth[0], gap_depth[1]) / terrain.vertical_scale)
 
     for i in range(num_gap):
-        offset = i*dis_between_gap_size
+        rand_x = np.random.randint(gap_move_x_min, gap_move_x_max)
+        offset = i*dis_between_gap_size+rand_x
         # print("dis_between_gap_size: ",dis_between_gap_size)
         terrain.height_field_raw[offset : offset+gap_size, 0 :terrain.width] = gap_depth
     

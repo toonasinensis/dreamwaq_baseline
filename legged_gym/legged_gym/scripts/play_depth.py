@@ -37,7 +37,7 @@ from legged_gym.utils import  get_args, export_policy_as_jit, task_registry, Log
 
 import numpy as np
 import torch
-
+from legged_gym.heightmap_prediction.lstm_heightmap_predictor import LSTMHeightmapPredictor
 
 def play(args, x_vel=1.0, y_vel=0.0, yaw_vel=0.0):
     env_cfg, train_cfg = task_registry.get_cfgs(name=args.task)
@@ -52,20 +52,20 @@ def play(args, x_vel=1.0, y_vel=0.0, yaw_vel=0.0):
     env_cfg.domain_rand.push_robots = False
     env_cfg.domain_rand.disturbance = False
     env_cfg.domain_rand.randomize_payload_mass = False
-    env_cfg.commands.heading_command = True
+    env_cfg.commands.heading_command = False
     # env_cfg.terrain.mesh_type = 'plane'
     # prepare environment
     
     env_cfg.env.episode_length_s = 120 # 2分钟
-    env_cfg.commands.resampling_time = 10 # 2分钟更新一次命令
+    env_cfg.commands.resampling_time = 120 # 2分钟更新一次命令
     
     env, _ = task_registry.make_env(name=args.task, args=args, env_cfg=env_cfg)
 
     env.focus = False
-    # env.commands[:, 0] = x_vel
-    # env.commands[:, 1] = y_vel
-    # env.commands[:, 2] = yaw_vel
-    print( env.commands)
+    env.commands[:, 0] = x_vel
+    env.commands[:, 1] = y_vel
+    env.commands[:, 2] = yaw_vel
+
     obs = env.get_observations()
     # load policy
     train_cfg.runner.resume = True
@@ -88,18 +88,36 @@ def play(args, x_vel=1.0, y_vel=0.0, yaw_vel=0.0):
     camera_vel = np.array([1., 1., 0.])
     camera_direction = np.array(env_cfg.viewer.lookat) - np.array(env_cfg.viewer.pos)
     img_idx = 0
+    
+     # Initialize heightmap predictor
+    heightmap_predictor = LSTMHeightmapPredictor(
+        dim_output=32,
+        vertical_res=58,
+        horizontal_res=87,
+        dim_n_proprio_hist_in=env.cfg.env.num_observations_wo_height,
+    ).to(env.device)
+    heightmap_path="/home/tian/Desktop/deep/dreamwaq_baseline/legged_gym/logs/height_est/test/model_57.pt"
+    heightmap_predictor.load(heightmap_path)
+    heightmap_predictor.eval()
+    para = sum([np.prod(list(p.size())) for p in heightmap_predictor.parameters()])
+    type_size = 4
+    print('Model {} : params: {:4f}M'.format(heightmap_predictor._get_name(), para * type_size / 1000 / 1000))
+
     # policy_exp = torch.jit.load("../../logs/rough_lite3/exported/policies/policy.pt")
     # policy_exp.eval()
     # policy_exp.to(device=env.device)
     for i in range(10*int(env.max_episode_length)):
           
-        actions = policy_.act_inference(obs.detach())
+        # actions = policy_.act_inference(obs.detach())
+        with torch.no_grad():
+            height_latent = heightmap_predictor.forward(env.get_depth(),obs.detach()[:,:-187])
         # height_latent = policy_.height_mlp(obs.detach()[:,-187:])
-        # actions = policy_.act_inference_wo_height(obs.detach()[:,:-187],height_latent)
-        # env.commands[:, 0] = x_vel
-        # env.commands[:, 1] = y_vel
-        # env.commands[:, 2] = yaw_vel
-        # env.commands[:, 3] = 0
+        print(height_latent[3,:])
+        actions = policy_.act_inference_wo_height(obs.detach()[:,:-187],height_latent)
+        env.commands[:, 0] = x_vel
+        env.commands[:, 1] = y_vel
+        env.commands[:, 2] = yaw_vel
+        env.commands[:, 3] = 0
 
         obs, _, rews, dones, infos, _, _ = env.step(actions.detach())
 

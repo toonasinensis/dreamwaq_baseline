@@ -588,24 +588,46 @@ class LeggedRobot(BaseTask):
             self.commands[env_ids, 0] = 0.0
             self.commands[env_ids, 1] = 0.0
             self.commands[env_ids, 2] = 0.0
+            self.commands[env_ids, 3] = 0.0
             return
-        self.commands[env_ids, 0] = torch_rand_float(-1.0, 1.0, (len(env_ids), 1), device=self.device).squeeze(1)
-        self.commands[env_ids, 1] = torch_rand_float(self.command_ranges["lin_vel_y"][0], self.command_ranges["lin_vel_y"][1], (len(env_ids), 1), device=self.device).squeeze(1)
+        
+        non_parkour_env_ids = (env_ids < (self.num_envs *self.cfg.terrain.non_parkour_terrains))
+        non_parkour_env_ids = env_ids[non_parkour_env_ids.nonzero(as_tuple=True)]
+
+        parkour_env_ids = (env_ids >= (self.num_envs *self.cfg.terrain.non_parkour_terrains))
+        parkour_env_ids = env_ids[parkour_env_ids.nonzero(as_tuple=True)]
+
+        # print("self.parkour_command_ranges",self.parkour_command_ranges)
+        self.commands[non_parkour_env_ids, 0] = torch_rand_float(self.command_ranges["lin_vel_x"][0], self.command_ranges["lin_vel_x"][1], (len(non_parkour_env_ids), 1), device=self.device).squeeze(1)
+        self.commands[non_parkour_env_ids, 1] = torch_rand_float(self.command_ranges["lin_vel_y"][0], self.command_ranges["lin_vel_y"][1], (len(non_parkour_env_ids), 1), device=self.device).squeeze(1)
+        
         if self.cfg.commands.heading_command:
-            self.commands[env_ids, 3] = torch_rand_float(self.command_ranges["heading"][0], self.command_ranges["heading"][1], (len(env_ids), 1), device=self.device).squeeze(1)
+            self.commands[non_parkour_env_ids, 3] = torch_rand_float(self.command_ranges["heading"][0], self.command_ranges["heading"][1], (len(non_parkour_env_ids), 1), device=self.device).squeeze(1)
         else:
-            self.commands[env_ids, 2] = torch_rand_float(self.command_ranges["ang_vel_yaw"][0], self.command_ranges["ang_vel_yaw"][1], (len(env_ids), 1), device=self.device).squeeze(1)
+            self.commands[non_parkour_env_ids, 2] = torch_rand_float(self.command_ranges["ang_vel_yaw"][0], self.command_ranges["ang_vel_yaw"][1], (len(non_parkour_env_ids), 1), device=self.device).squeeze(1)
 
-        high_vel_env_ids = (env_ids < (self.num_envs * 0.2))
-        high_vel_env_ids = env_ids[high_vel_env_ids.nonzero(as_tuple=True)]
 
-        self.commands[high_vel_env_ids, 0] = torch_rand_float(self.command_ranges["lin_vel_x"][0], self.command_ranges["lin_vel_x"][1], (len(high_vel_env_ids), 1), device=self.device).squeeze(1)
+        self.commands[parkour_env_ids, 0] = torch_rand_float(self.parkour_command_ranges["lin_vel_x"][0], self.parkour_command_ranges["lin_vel_x"][1], (len(parkour_env_ids), 1), device=self.device).squeeze(1)
+        self.commands[parkour_env_ids, 1] = torch_rand_float(self.parkour_command_ranges["lin_vel_y"][0], self.parkour_command_ranges["lin_vel_y"][1], (len(parkour_env_ids), 1), device=self.device).squeeze(1)
+        # if(len(parkour_env_ids)>0):
+        #     print("self.parkour.commands ,",self.commands[parkour_env_ids, :] ,parkour_env_ids, env_ids)
+
+        # if(len(non_parkour_env_ids)>0):
+        #     print("self.non_parkour_env_ids.commands ,",self.commands[non_parkour_env_ids, :] ,non_parkour_env_ids, env_ids)
+        
+        if self.cfg.commands.heading_command:
+            self.commands[parkour_env_ids, 3] = torch_rand_float(self.parkour_command_ranges["heading"][0], self.parkour_command_ranges["heading"][1], (len(parkour_env_ids), 1), device=self.device).squeeze(1)
+        else:
+            self.commands[parkour_env_ids, 2] = torch_rand_float(self.parkour_command_ranges["ang_vel_yaw"][0], self.parkour_command_ranges["ang_vel_yaw"][1], (len(parkour_env_ids), 1), device=self.device).squeeze(1)
 
         # set y commands of high vel envs to zero
-        self.commands[high_vel_env_ids, 1:2] *= (torch.norm(self.commands[high_vel_env_ids, 0:1], dim=1) < 1.0).unsqueeze(1)
+        self.commands[env_ids, 1:2] *= (torch.norm(self.commands[env_ids, 0:1], dim=1) < 1.0).unsqueeze(1)
 
         # set small commands to zero
         self.commands[env_ids, :2] *= (torch.norm(self.commands[env_ids, :2], dim=1) > 0.2).unsqueeze(1)
+
+        # print(" self.commands", self.commands,"env_idx",env_ids)
+
 
         self.pos_target[env_ids,:2] =  self.commands[env_ids, :2]*self.cfg.commands.resampling_time + self.root_states[env_ids,:2]
         self.pos_target[env_ids, 2] = self.root_states[env_ids,2]
@@ -724,17 +746,20 @@ class LeggedRobot(BaseTask):
         Args:
             env_ids (List[int]): ids of environments being reset
         """
-        low_vel_env_ids = (env_ids > (self.num_envs * 0.2))
-        high_vel_env_ids = (env_ids < (self.num_envs * 0.2))
-        low_vel_env_ids = env_ids[low_vel_env_ids.nonzero(as_tuple=True)]
-        high_vel_env_ids = env_ids[high_vel_env_ids.nonzero(as_tuple=True)]
+
+        #parkour terrain robot only 
+        parkour_vel_env_ids = (env_ids > (self.num_envs * self.cfg.terrain.non_parkour_terrains))
+        non_parkour_vel_env_ids = (env_ids < (self.num_envs * self.cfg.terrain.non_parkour_terrains))
+        parkour_vel_env_ids = env_ids[parkour_vel_env_ids.nonzero(as_tuple=True)]
+        non_parkour_vel_env_ids = env_ids[non_parkour_vel_env_ids.nonzero(as_tuple=True)]
         # If the tracking reward is above 80% of the maximum, increase the range of commands # TODO
-        if (torch.mean(self.episode_sums["tracking_lin_vel"][low_vel_env_ids]) / self.max_episode_length > 0.85 * self.reward_scales["tracking_lin_vel"]) \
-            and (torch.mean(self.episode_sums["tracking_lin_vel"][high_vel_env_ids]) / self.max_episode_length > 0.85 * self.reward_scales["tracking_lin_vel"]):
+        if (torch.mean(self.episode_sums["tracking_lin_vel"][parkour_vel_env_ids]) / self.max_episode_length > 0.85 * self.reward_scales["tracking_lin_vel"]) \
+            and (torch.mean(self.episode_sums["tracking_lin_vel"][non_parkour_vel_env_ids]) / self.max_episode_length > 0.85 * self.reward_scales["tracking_lin_vel"]):
             self.command_ranges["lin_vel_x"][0] = np.clip(self.command_ranges["lin_vel_x"][0] - 0.1, -self.cfg.commands.max_curriculum, 0.)
             self.command_ranges["lin_vel_x"][1] = np.clip(self.command_ranges["lin_vel_x"][1] + 0.1, 0., self.cfg.commands.max_curriculum) # 0.2
-
-
+            # self.parkour_command_ranges["lin_vel_x"][0]  = 
+            self.parkour_command_ranges["lin_vel_x"][1]  = np.clip(self.parkour_command_ranges["lin_vel_x"][1] + 0.1, 0., self.cfg.commands.parkour_max_curriculum) # 0.2
+   
     def _get_noise_scale_vec(self, cfg):
         """ Sets a vector used to scale the noise added to the observations.
             [NOTE]: Must be adapted when changing the observations structure
@@ -1088,6 +1113,7 @@ class LeggedRobot(BaseTask):
         self.obs_scales = self.cfg.normalization.obs_scales
         self.reward_scales = class_to_dict(self.cfg.rewards.scales)
         self.command_ranges = class_to_dict(self.cfg.commands.ranges)
+        self.parkour_command_ranges = class_to_dict(self.cfg.commands.parkour_ranges)
         if self.cfg.terrain.mesh_type not in ['heightfield', 'trimesh']:
             self.cfg.terrain.curriculum = False
         self.max_episode_length_s = self.cfg.env.episode_length_s

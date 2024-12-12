@@ -86,6 +86,7 @@ class Lite3RoughCfg( LeggedRobotCfg ):
     class commands( LeggedRobotCfg.commands ):
             curriculum = True
             max_curriculum = 1.0 # 2.0
+            parkour_max_curriculum = 1.0 # 2.0
             num_commands = 4 # default: lin_vel_x, lin_vel_y, ang_vel_yaw, heading (in heading mode ang_vel_yaw is recomputed from heading error)
             resampling_time = 10. # time before command are changed[s]
             heading_command = True # if true: compute ang vel command from heading error
@@ -93,7 +94,13 @@ class Lite3RoughCfg( LeggedRobotCfg ):
                 lin_vel_x = [-0.5, 0.5] # min max [m/s] TODO 1.0
                 lin_vel_y = [-0.5, 0.5]   # min max [m/s] TODO 1.0
                 ang_vel_yaw = [-1.0, 1.0]    # min max [rad/s] TODO 3.14
-                heading = [-3.14, 3.14]
+                heading = [-1.14, 1.14]
+
+            class parkour_ranges( LeggedRobotCfg.commands.parkour_ranges):
+                lin_vel_x = [0.2, 0.50] # min max [m/s]
+                lin_vel_y = [-0.20, 0.20]   # min max [m/s]
+                ang_vel_yaw = [-1.0, 1.0]    # min max [rad/s],useless,because in heading_command
+                heading = [-0.2, 0.2]
 
     class asset( LeggedRobotCfg.asset ):
         file = '{LEGGED_GYM_ROOT_DIR}/resources/robots/Lite3/urdf/Lite3.urdf'
@@ -132,7 +139,7 @@ class Lite3RoughCfg( LeggedRobotCfg ):
             # dof_pos_limits = - 0.05 #TODO
             # dof_pos = - 0.05 #TODO
             stumble = - 1.0
-            feet_edge = - 1.0
+            feet_edge = - 0.0
             # -------------------------
 
         only_positive_rewards = False # if true negative total rewards are clipped at zero (avoids early termination problems)
