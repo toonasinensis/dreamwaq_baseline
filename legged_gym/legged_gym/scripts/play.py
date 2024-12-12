@@ -59,9 +59,18 @@ def play(args, x_vel=1.0, y_vel=0.0, yaw_vel=0.0):
     env_cfg.env.episode_length_s = 120 # 2分钟
     env_cfg.commands.resampling_time = 10 # 2分钟更新一次命令
     
+    env_cfg.commands.ranges.lin_vel_x =  [-0.0, 0.0]
+    env_cfg.commands.ranges.lin_vel_y =  [-0.50, 0.50]
+    env_cfg.commands.ranges.ang_vel_yaw =  [-2.50, 2.50]
+
+    env_cfg.commands.ranges.heading =  [-2.50, 2.50]
+
+    env_cfg.commands.parkour_ranges.lin_vel_x = [0.50, 1.0]
+
     env, _ = task_registry.make_env(name=args.task, args=args, env_cfg=env_cfg)
 
     env.focus = False
+
     # env.commands[:, 0] = x_vel
     # env.commands[:, 1] = y_vel
     # env.commands[:, 2] = yaw_vel

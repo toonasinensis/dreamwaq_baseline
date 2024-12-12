@@ -150,7 +150,7 @@ class TaskRegistry():
         if resume:
             # load previously trained model
             # resume_path = get_load_path(log_root, load_run=train_cfg.runner.load_run, checkpoint=train_cfg.runner.checkpoint)
-            resume_path = "/home/tian/Desktop/deep/dreamwaq_baseline/legged_gym/logs/rough_lite3/add_not_contact/model_12001.pt"
+            resume_path = "/home/tian/Desktop/deep/dreamwaq_baseline/legged_gym/logs/rough_lite3/add_not_contact/model_7001.pt"
             print(f"Loading model from: {resume_path}")
             runner.load(resume_path)
         return runner, train_cfg

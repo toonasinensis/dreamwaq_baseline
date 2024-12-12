@@ -108,10 +108,10 @@ class ReplayBuffer:
                        device=self._device))
           curr_imgs.append(self._image_recorders[env_id].get_image())
         curr_imgs = torch.stack(curr_imgs, dim=0).clone()
-        self._env.commands[:, 0] = 1
-        self._env.commands[:, 1] = 0
-        self._env.commands[:, 2] = 0
-        self._env.commands[:, 3] = 0
+        # self._env.commands[:, 0] = 1
+        # self._env.commands[:, 1] = 0
+        # self._env.commands[:, 2] = 0
+        # self._env.commands[:, 3] = 0
         if heightmap_predictor is None:
           # print(self._env.commands)
           obs = self._env.get_observations()

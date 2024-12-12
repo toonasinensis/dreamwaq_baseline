@@ -151,7 +151,7 @@ class Terrain:
         elif choice < self.proportions[1]:
            gap_size = 0.6 * difficulty
            gap_terrain(terrain, gap_size=gap_size, platform_size=3.)
-        #    add_roughness(self,terrain=terrain,difficulty=difficulty)
+           add_roughness(self,terrain=terrain,difficulty=difficulty*0.5)
 
         elif choice < self.proportions[2]:
             # pass

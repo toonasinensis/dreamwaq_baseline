@@ -37,20 +37,23 @@ def main(args):
   env_cfg.domain_rand.push_robots = False
   env_cfg.domain_rand.disturbance = False
   env_cfg.domain_rand.randomize_payload_mass = False
-  env_cfg.commands.heading_command = False
+  env_cfg.commands.heading_command = True
   # prepare environment
     
   env_cfg.env.episode_length_s = 20 # 2分钟
   env_cfg.commands.resampling_time = 20 # 2分钟更新一次命令
   
+  env_cfg.commands.ranges.lin_vel_x =  [-0.50, 1.0]
+  env_cfg.commands.ranges.lin_vel_y =  [-0.50, 0.50]
+  env_cfg.commands.ranges.ang_vel_yaw =  [-2.50, 2.50]
+  env_cfg.commands.ranges.heading =  [-2.50, 2.50]
+
+  env_cfg.commands.parkour_ranges.lin_vel_x = [0.50, 1.0]
+
   env, _ = task_registry.make_env(name=args.task, args=args, env_cfg=env_cfg)
 
   #TODO:need to add random:
   env.focus = False
-  env.commands[:, 0] = 1.
-  env.commands[:, 1] = 0
-  env.commands[:, 2] = 0
-  env.commands[:, 2] = 0
 
   obs = env.get_observations()
 
