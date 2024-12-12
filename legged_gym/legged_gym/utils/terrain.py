@@ -149,9 +149,10 @@ class Terrain:
             # add_roughness(self,terrain=terrain,difficulty=difficulty)
             # my_pyramid_stairs_terrain(terrain, step_width=0.30, step_height=-step_height, platform_size=3.)
         elif choice < self.proportions[1]:
-           gap_size = 0.6 * difficulty
+           gap_width_max=0.6
+           gap_size = gap_width_max * difficulty+gap_width_max*0.1
            gap_terrain(terrain, gap_size=gap_size, platform_size=3.)
-           add_roughness(self,terrain=terrain,difficulty=difficulty*0.5)
+           add_roughness(self,terrain=terrain,difficulty=difficulty)
 
         elif choice < self.proportions[2]:
             # pass

@@ -82,7 +82,7 @@ class LeggedRobotCfg(BaseConfig):
 
 
         #new add end
-        horizontal_scale = 0.1 # [m]
+        horizontal_scale = 0.05 # [m]
         vertical_scale = 0.005 # [m]
         border_size = 5 # [m] #useless ,need to smaller,not 25m
         curriculum = True

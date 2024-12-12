@@ -121,7 +121,7 @@ class Lite3RoughCfg( LeggedRobotCfg ):
     class rewards( LeggedRobotCfg.rewards ):
         class scales:
             foot_clearance= -0.05 #-0.05
-            foot_mirror = -0.01 # -0.05
+            # foot_mirror = -0.01 # -0.05
             foot_slide = -0.05
             
             joint_power = -2e-5
